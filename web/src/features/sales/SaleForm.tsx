@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { SelectField, TextField, TextareaField } from '../../components/fields'
 import { Sheet } from '../../components/Sheet'
+import { useConfirm } from '../../components/ConfirmProvider'
 import { Button } from '../../components/ui'
 import { notify } from '../../lib/toast'
 import { inputDate } from '../../lib/format'
@@ -43,6 +44,7 @@ export function SaleForm({
   const save = useSaveSale()
   const del = useDeleteSale()
   const navigate = useNavigate()
+  const confirm = useConfirm()
 
   const {
     register,
@@ -91,7 +93,14 @@ export function SaleForm({
   })
 
   const onDelete = async () => {
-    if (!sale || !confirm('Delete this sale?')) return
+    if (!sale) return
+    const ok = await confirm({
+      title: 'Delete this sale?',
+      message: `${sale.invoiceNumber} will be permanently removed.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await del.mutateAsync(sale.id)
       notify.success('Sale deleted')
@@ -118,7 +127,7 @@ export function SaleForm({
               </Button>
             </>
           )}
-          <Button block onClick={onSubmit} loading={isSubmitting}>
+          <Button className="flex-1" onClick={onSubmit} loading={isSubmitting}>
             {sale ? 'Save changes' : 'Add sale'}
           </Button>
         </div>

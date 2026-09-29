@@ -6,6 +6,7 @@ import { Toaster } from 'sonner'
 import { App } from './App'
 import { AdminProvider } from './auth/AdminContext'
 import { AuthProvider } from './auth/AuthContext'
+import { ConfirmProvider } from './components/ConfirmProvider'
 import { ThemeModeProvider, useThemeMode } from './theme/ThemeModeProvider'
 import { initTheme } from './theme/theme'
 import './index.css'
@@ -38,7 +39,9 @@ createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <AdminProvider>
             <AuthProvider>
-              <App />
+              <ConfirmProvider>
+                <App />
+              </ConfirmProvider>
               <AppToaster />
             </AuthProvider>
           </AdminProvider>

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
+import { useConfirm } from '../../components/ConfirmProvider'
 import { Button, EmptyState, SectionHeader, SkeletonRows, StatTile } from '../../components/ui'
 import { money } from '../../lib/format'
 import { useCustomer, useCustomerSummary, useDeleteCustomer } from '../../lib/queries'
@@ -22,10 +23,18 @@ export function CustomerDetailPage() {
   const customer = useCustomer(id)
   const summary = useCustomerSummary(id, year)
   const del = useDeleteCustomer()
+  const confirm = useConfirm()
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i)
 
   const onDelete = async () => {
-    if (!id || !confirm('Delete this customer?')) return
+    if (!id) return
+    const ok = await confirm({
+      title: 'Delete this customer?',
+      message: `${customer.data?.name ?? 'This customer'} will be removed. Customers with existing sales cannot be deleted.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await del.mutateAsync(id)
       notify.success('Customer deleted')

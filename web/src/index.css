@@ -159,6 +159,24 @@ body {
   transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
 }
 
+/* ---------- Focus: soft accent ring, never the harsh default outline ---------- */
+.input:focus,
+.input:focus-within,
+.select:focus,
+.select:focus-visible,
+.textarea:focus,
+.textarea:focus-visible {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 22%, transparent) !important;
+}
+/* the inner <input> of a .input container (e.g. search) shouldn't draw its own ring */
+.input :focus,
+.input input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* ---------- Scrollbars ---------- */
 ::-webkit-scrollbar {
   width: 10px;

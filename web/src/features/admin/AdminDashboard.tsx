@@ -1,6 +1,7 @@
 import { Building2, KeyRound, LogOut, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useAdmin } from '../../auth/AdminContext'
+import { useConfirm } from '../../components/ConfirmProvider'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Button, EmptyState, SkeletonRows } from '../../components/ui'
 import { useCompanies, useDeleteCompany, useResetPassword } from '../../lib/adminQueries'
@@ -15,11 +16,17 @@ export function AdminDashboard() {
   const { data, isLoading } = useCompanies()
   const reset = useResetPassword()
   const del = useDeleteCompany()
+  const confirm = useConfirm()
   const [createOpen, setCreateOpen] = useState(false)
   const [credentials, setCredentials] = useState<CompanyCredentials | null>(null)
 
   const onReset = async (c: CompanyAdmin) => {
-    if (!confirm(`Reset the password for ${c.name}? Their current password stops working.`)) return
+    const ok = await confirm({
+      title: `Reset password for ${c.name}?`,
+      message: 'Their current password stops working and a new one is generated.',
+      confirmLabel: 'Reset password',
+    })
+    if (!ok) return
     try {
       setCredentials(await reset.mutateAsync(c.id))
       notify.success('New password generated')
@@ -29,7 +36,13 @@ export function AdminDashboard() {
   }
 
   const onDelete = async (c: CompanyAdmin) => {
-    if (!confirm(`Delete ${c.name}? This permanently removes all their data.`)) return
+    const ok = await confirm({
+      title: `Delete ${c.name}?`,
+      message: 'This permanently removes the company and all its customers and sales.',
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await del.mutateAsync(c.id)
       notify.success(`${c.name} deleted`)

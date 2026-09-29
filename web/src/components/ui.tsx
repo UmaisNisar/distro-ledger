@@ -82,8 +82,6 @@ export function StatTile({
   label,
   value,
   hint,
-  icon: Icon,
-  accent,
   invert,
   onClick,
   size = 'md',
@@ -91,6 +89,7 @@ export function StatTile({
   label: string
   value: string
   hint?: string
+  /** Kept for API compatibility; decorative icons are no longer rendered. */
   icon?: LucideIcon
   accent?: boolean
   /** Dark, high-emphasis tile — use for the primary KPI. */
@@ -101,42 +100,31 @@ export function StatTile({
   size?: 'sm' | 'md'
 }) {
   const sm = size === 'sm'
-  const iconBg = invert
-    ? 'rgba(255,255,255,0.12)'
-    : accent
-      ? 'color-mix(in oklab, var(--color-primary) 16%, transparent)'
-      : 'color-mix(in oklab, var(--color-base-content) 8%, transparent)'
-  const iconColor = invert
-    ? '#f5f3ee'
-    : accent
-      ? 'var(--color-primary)'
-      : 'var(--color-base-content)'
   const Tag = onClick ? 'button' : 'div'
   return (
     <Tag
       onClick={onClick}
-      className={`panel panel-hover ${sm ? 'p-4 gap-3' : 'p-5 gap-3.5'} flex items-start min-w-0 w-full text-left ${invert ? 'border-transparent' : ''} ${onClick ? 'cursor-pointer' : ''}`}
+      className={`panel ${onClick ? 'panel-hover cursor-pointer' : ''} ${sm ? 'p-4' : 'p-5'} flex flex-col gap-1.5 min-w-0 w-full text-left ${invert ? 'border-transparent' : ''}`}
       style={invert ? { background: 'var(--color-neutral)', color: 'var(--color-neutral-content)' } : undefined}
     >
-      {Icon && (
-        <span
-          className="hidden sm:grid place-items-center rounded-xl shrink-0"
-          style={{ width: sm ? 38 : 44, height: sm ? 38 : 44, background: iconBg, color: iconColor }}
-        >
-          <Icon size={sm ? 19 : 22} />
+      <span
+        className="text-[0.7rem] font-bold uppercase tracking-[0.08em] truncate"
+        style={{ color: invert ? 'color-mix(in oklab, var(--color-neutral-content) 70%, transparent)' : 'color-mix(in oklab, var(--color-base-content) 58%, transparent)' }}
+      >
+        {label}
+      </span>
+      <span
+        className="tabular truncate font-semibold"
+        style={{ fontSize: sm ? 'clamp(1.05rem, 3vw, 1.35rem)' : 'clamp(1.35rem, 4vw, 1.9rem)', lineHeight: 1.1 }}
+        title={value}
+      >
+        {value}
+      </span>
+      {hint && (
+        <span className="footnote truncate" style={{ color: invert ? 'color-mix(in oklab, var(--color-neutral-content) 55%, transparent)' : 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' }}>
+          {hint}
         </span>
       )}
-      <div className="min-w-0">
-        <div className={`footnote truncate ${invert ? 'opacity-70' : 'text-secondary'}`}>{label}</div>
-        <div
-          className="tabular truncate font-semibold"
-          style={{ fontSize: sm ? 'clamp(1.05rem, 3vw, 1.3rem)' : 'clamp(1.2rem, 5vw, 1.85rem)', lineHeight: 1.15 }}
-          title={value}
-        >
-          {value}
-        </div>
-        {hint && <div className={`footnote truncate ${invert ? 'opacity-60' : 'text-tertiary'}`}>{hint}</div>}
-      </div>
     </Tag>
   )
 }

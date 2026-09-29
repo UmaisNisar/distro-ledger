@@ -53,33 +53,35 @@ export function LoginPage() {
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
     <div className="min-h-full grid lg:grid-cols-2">
-      {/* Brand panel (desktop) */}
-      <div className="hidden lg:flex flex-col justify-between p-12 text-primary-content relative overflow-hidden" style={{ background: 'var(--color-primary)' }}>
-        <div className="flex items-center gap-2 relative z-10">
-          <span className="grid place-items-center w-10 h-10 rounded-xl bg-white/20 font-extrabold">D</span>
-          <span className="font-bold text-xl">DistroLedger</span>
+      {/* Brand panel (desktop) — restrained dark editorial, accent only on the mark */}
+      <div className="hidden lg:flex flex-col justify-between p-14" style={{ background: 'var(--color-neutral)', color: 'var(--color-neutral-content)' }}>
+        <div className="flex items-center gap-3">
+          <span className="grid place-items-center w-10 h-10 rounded-lg bg-primary text-primary-content font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>D</span>
+          <span className="font-bold text-lg" style={{ fontFamily: 'var(--font-display)' }}>DistroLedger</span>
         </div>
-        <div className="relative z-10">
-          <h2 className="text-3xl font-extrabold leading-tight">Sales & receivables,<br />without the spreadsheet.</h2>
-          <p className="mt-3 opacity-80 max-w-sm">Track invoices, payments and outstanding balances for your distribution business — fast and clean.</p>
+        <div className="max-w-md">
+          <h2 className="leading-[1.1]" style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
+            Sales &amp; receivables,<br />without the spreadsheet.
+          </h2>
+          <p className="mt-4 subhead" style={{ color: 'color-mix(in oklab, var(--color-neutral-content) 68%, transparent)' }}>
+            Track invoices, payments and outstanding balances for your distribution business — fast, precise and clean.
+          </p>
         </div>
-        <div className="opacity-60 footnote relative z-10">© {new Date().getFullYear()} DistroLedger</div>
-        <div className="absolute -right-24 -bottom-24 w-96 h-96 rounded-full bg-white/10" />
-        <div className="absolute -right-8 top-12 w-40 h-40 rounded-full bg-white/10" />
+        <div className="footnote pt-6 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'color-mix(in oklab, var(--color-neutral-content) 55%, transparent)' }}>
+          © {new Date().getFullYear()} DistroLedger
+        </div>
       </div>
 
       {/* Form */}
       <div className="flex items-center justify-center px-4 py-10 relative">
         <div className="absolute top-4 right-4"><ThemeToggle compact /></div>
-        <div className="w-full max-w-md">
-          <div className="text-center mb-6 lg:hidden">
-            <div className="title-2 text-primary">DistroLedger</div>
-          </div>
-          <div className="text-center mb-6">
+        <div className="w-full max-w-sm">
+          <div className="mb-8">
+            <div className="section-header mb-2 lg:hidden">DistroLedger</div>
             <h1 className="large-title">{title}</h1>
-            <p className="subhead text-secondary mt-1">{subtitle}</p>
+            <p className="subhead text-secondary mt-1.5">{subtitle}</p>
           </div>
-          <div className="panel p-6 animate-page">{children}</div>
+          <div className="animate-page">{children}</div>
         </div>
       </div>
     </div>

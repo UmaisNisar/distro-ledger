@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 /**
@@ -27,7 +28,7 @@ export function Sheet({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div className="modal modal-open modal-bottom sm:modal-middle">
       <div className="modal-box modal-pop p-0 flex flex-col max-h-[92vh] sm:max-w-lg overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-base-300 sticky top-0 bg-base-100 z-10">
@@ -44,6 +45,7 @@ export function Sheet({
       <button className="modal-backdrop" onClick={onClose} aria-label="Close">
         close
       </button>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -1,7 +1,7 @@
+import { Check, Copy } from 'lucide-react'
 import { useState } from 'react'
 import { Sheet } from '../../components/Sheet'
 import { Button } from '../../components/ui'
-import { IconCheck } from '../../components/icons'
 import type { CompanyCredentials } from '../../lib/types'
 
 export function CredentialsModal({
@@ -37,17 +37,17 @@ function CopyRow({ label, value, mono }: { label: string; value: string; mono?: 
     }
   }
   return (
-    <div className="field">
-      <label className="field-label">{label}</label>
+    <div className="mb-1">
+      <label className="block text-sm font-medium mb-1.5 text-secondary">{label}</label>
       <div className="flex gap-2">
-        <div
-          className="field-input flex items-center"
-          style={{ flex: 1, fontFamily: mono ? 'ui-monospace, monospace' : undefined, overflow: 'hidden', textOverflow: 'ellipsis' }}
-        >
-          {value}
-        </div>
+        <input
+          readOnly
+          value={value}
+          className="input w-full flex-1"
+          style={{ fontFamily: mono ? 'ui-monospace, monospace' : undefined }}
+        />
         <Button variant="secondary" onClick={copy} type="button">
-          {copied ? <IconCheck width={18} height={18} /> : 'Copy'}
+          {copied ? <Check size={16} /> : <Copy size={16} />}
         </Button>
       </div>
     </div>

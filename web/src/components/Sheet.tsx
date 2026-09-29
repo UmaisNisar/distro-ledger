@@ -1,9 +1,9 @@
 import { useEffect, type ReactNode } from 'react'
-import { IconClose } from './icons'
+import { X } from 'lucide-react'
 
 /**
- * Presented modal: bottom sheet on mobile, centered card on desktop.
- * Content scrolls inside; the shell size is fixed so nothing shifts the page.
+ * DaisyUI modal: centered dialog on desktop, bottom sheet on mobile.
+ * Overlays the page (no layout shift); content scrolls inside; animated open.
  */
 export function Sheet({
   open,
@@ -22,35 +22,28 @@ export function Sheet({
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
+    return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
   if (!open) return null
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
-      style={{ background: 'rgba(0,0,0,0.4)' }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full sm:max-w-lg flex flex-col rounded-t-[20px] sm:rounded-[20px]"
-        style={{ background: 'var(--bg-elevated)', maxHeight: '92vh' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-4 py-3 hairline shrink-0">
-          <span className="headline">{title}</span>
-          <button className="btn-ghost btn" onClick={onClose} aria-label="Close">
-            <IconClose width={22} height={22} />
+    <div className="modal modal-open modal-bottom sm:modal-middle">
+      <div className="modal-box modal-pop p-0 flex flex-col max-h-[92vh] sm:max-w-lg">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-base-300 sticky top-0 bg-base-100 z-10">
+          <h3 className="headline">{title}</h3>
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={onClose} aria-label="Close">
+            <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto px-4 py-4 flex flex-col gap-3">{children}</div>
-        {footer && <div className="px-4 py-3 hairline shrink-0" style={{ borderBottom: 'none', borderTop: '0.5px solid var(--separator)' }}>{footer}</div>}
+        <div className="overflow-y-auto px-5 py-4 flex flex-col gap-1">{children}</div>
+        {footer && (
+          <div className="px-5 py-4 border-t border-base-300 bg-base-100 sticky bottom-0">{footer}</div>
+        )}
       </div>
+      <button className="modal-backdrop" onClick={onClose} aria-label="Close">
+        close
+      </button>
     </div>
   )
 }

@@ -1,15 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRef, useState } from 'react'
+import { Download, Upload } from 'lucide-react'
+import { useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
 import { TextField } from '../../components/fields'
-import { IconDownload, IconUpload } from '../../components/icons'
-import { Button, ErrorNote, SectionHeader } from '../../components/ui'
-import { api, apiErrorMessage } from '../../lib/api'
+import { Button, SectionHeader } from '../../components/ui'
+import { api } from '../../lib/api'
 import { useImportSales, useUpdateSettings } from '../../lib/queries'
-import type { ImportResult } from '../../lib/types'
+import { notify } from '../../lib/toast'
 import { ACCENT_PRESETS, applyAccent } from '../../theme/theme'
 
 const schema = z.object({
@@ -26,13 +26,10 @@ const schema = z.object({
 type Form = z.infer<typeof schema>
 
 export function SettingsPage() {
-  const { company, setCompany, logout } = useAuth()
+  const { company, setCompany } = useAuth()
   const update = useUpdateSettings()
   const importSales = useImportSales()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [error, setError] = useState('')
-  const [saved, setSaved] = useState(false)
-  const [importResult, setImportResult] = useState<ImportResult | null>(null)
 
   const {
     register,
@@ -44,7 +41,7 @@ export function SettingsPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: company?.name ?? '',
-      themeColor: company?.themeColor ?? '#0A84FF',
+      themeColor: company?.themeColor ?? '#2563EB',
       currencyCode: company?.currencyCode ?? 'PKR',
       currencySymbol: company?.currencySymbol ?? 'Rs',
       taxIdLabel: company?.taxIdLabel ?? 'NTN #',
@@ -57,8 +54,6 @@ export function SettingsPage() {
   const themeColor = watch('themeColor')
 
   const onSubmit = handleSubmit(async (data) => {
-    setError('')
-    setSaved(false)
     try {
       const updated = await update.mutateAsync({
         ...data,
@@ -68,19 +63,19 @@ export function SettingsPage() {
         logoUrl: company?.logoUrl ?? null,
       })
       setCompany(updated)
-      setSaved(true)
+      notify.success('Settings saved')
     } catch (e) {
-      setError(apiErrorMessage(e))
+      notify.fromError(e)
     }
   })
 
   const onImport = async (file: File) => {
-    setImportResult(null)
     try {
-      const result = await importSales.mutateAsync(file)
-      setImportResult(result)
+      const r = await importSales.mutateAsync(file)
+      notify.success(`Imported ${r.imported} sale${r.imported === 1 ? '' : 's'}${r.skipped ? `, skipped ${r.skipped}` : ''}`)
+      if (r.errors.length) notify.error(`${r.errors.length} row(s) had issues`)
     } catch (e) {
-      setError(apiErrorMessage(e))
+      notify.fromError(e)
     }
   }
 
@@ -94,44 +89,48 @@ export function SettingsPage() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
-      setError(apiErrorMessage(e))
+      notify.fromError(e)
     }
   }
 
   return (
-    <Page title="Settings">
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        {error && <ErrorNote message={error} />}
-        {saved && <div className="subhead" style={{ color: 'var(--success)' }}>Saved.</div>}
+    <Page title="Settings" subtitle="Company profile, branding and data">
+      <form onSubmit={onSubmit} className="grid lg:grid-cols-2 gap-4">
+        <div className="panel p-5 flex flex-col">
+          <SectionHeader>Company</SectionHeader>
+          <TextField label="Company name" error={errors.name?.message} {...register('name')} />
+          <TextField label="Handle (cannot be changed)" value={`@${company?.slug ?? ''}`} disabled readOnly />
+          <TextField label="Address" error={errors.address?.message} {...register('address')} />
+          <div className="grid grid-cols-2 gap-3">
+            <TextField label="City" error={errors.city?.message} {...register('city')} />
+            <TextField label="Phone" error={errors.phone?.message} {...register('phone')} />
+          </div>
+        </div>
 
-        <SectionHeader>Company</SectionHeader>
-        <TextField label="Company name" error={errors.name?.message} {...register('name')} />
-        <TextField label="Handle (cannot be changed)" value={`@${company?.slug ?? ''}`} disabled readOnly />
-
-        <div className="field">
-          <label className="field-label">Accent color</label>
-          <div className="flex flex-wrap gap-2.5 py-1">
-            {ACCENT_PRESETS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => {
-                  setValue('themeColor', c, { shouldValidate: true, shouldDirty: true })
-                  applyAccent(c)
-                }}
-                aria-label={c}
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 999,
-                  background: c,
-                  border: themeColor.toLowerCase() === c.toLowerCase() ? '3px solid var(--label)' : '3px solid transparent',
-                  boxShadow: '0 0 0 1px var(--separator)',
-                  cursor: 'pointer',
-                }}
-              />
-            ))}
-            <label style={{ width: 34, height: 34, borderRadius: 999, overflow: 'hidden', boxShadow: '0 0 0 1px var(--separator)', cursor: 'pointer', display: 'inline-flex' }}>
+        <div className="panel p-5 flex flex-col">
+          <SectionHeader>Branding & format</SectionHeader>
+          <div className="mb-3">
+            <label className="block text-sm font-medium mb-2 text-secondary">Accent color</label>
+            <div className="flex flex-wrap gap-2.5 items-center">
+              {ACCENT_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={c}
+                  onClick={() => {
+                    setValue('themeColor', c, { shouldValidate: true, shouldDirty: true })
+                    applyAccent(c)
+                  }}
+                  className="rounded-full transition-transform hover:scale-110"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    background: c,
+                    outline: themeColor.toLowerCase() === c.toLowerCase() ? '3px solid var(--color-base-content)' : '2px solid transparent',
+                    outlineOffset: 2,
+                  }}
+                />
+              ))}
               <input
                 type="color"
                 value={themeColor}
@@ -139,42 +138,32 @@ export function SettingsPage() {
                   setValue('themeColor', e.target.value.toUpperCase(), { shouldValidate: true, shouldDirty: true })
                   applyAccent(e.target.value)
                 }}
-                style={{ width: 44, height: 44, border: 'none', padding: 0, transform: 'translate(-5px,-5px)', cursor: 'pointer' }}
+                className="w-9 h-9 rounded-full overflow-hidden cursor-pointer bg-transparent border-0"
+                aria-label="Custom color"
               />
-            </label>
+            </div>
           </div>
-          <span className="field-error">{errors.themeColor?.message ?? ''}</span>
+          <div className="grid grid-cols-2 gap-3">
+            <TextField label="Currency code" error={errors.currencyCode?.message} {...register('currencyCode')} />
+            <TextField label="Currency symbol" error={errors.currencySymbol?.message} {...register('currencySymbol')} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <TextField label="Tax ID label" error={errors.taxIdLabel?.message} {...register('taxIdLabel')} />
+            <TextField label="Invoice prefix" error={errors.invoicePrefix?.message} {...register('invoicePrefix')} />
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <TextField label="Currency code" error={errors.currencyCode?.message} {...register('currencyCode')} />
-          <TextField label="Currency symbol" error={errors.currencySymbol?.message} {...register('currencySymbol')} />
+        <div className="lg:col-span-2">
+          <Button type="submit" loading={isSubmitting} disabled={!isDirty}>Save changes</Button>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <TextField label="Tax ID label" error={errors.taxIdLabel?.message} {...register('taxIdLabel')} />
-          <TextField label="Invoice prefix" error={errors.invoicePrefix?.message} {...register('invoicePrefix')} />
-        </div>
-        <TextField label="Address" error={errors.address?.message} {...register('address')} />
-        <div className="grid grid-cols-2 gap-2">
-          <TextField label="City" error={errors.city?.message} {...register('city')} />
-          <TextField label="Phone" error={errors.phone?.message} {...register('phone')} />
-        </div>
-
-        <Button type="submit" block loading={isSubmitting} disabled={!isDirty}>
-          Save changes
-        </Button>
       </form>
 
-      {/* Data */}
-      <SectionHeader>Data</SectionHeader>
-      <div className="card p-4 flex flex-col gap-3">
-        <div>
-          <div className="subhead" style={{ fontWeight: 600 }}>Import sales (CSV)</div>
-          <div className="footnote text-secondary">
-            Columns: Date, Customer Name, {company?.taxIdLabel ?? 'NTN #'}, Amount, Payment Status, Payment Method, Notes.
-            Missing customers are created automatically.
-          </div>
-        </div>
+      <div className="panel p-5">
+        <SectionHeader>Data</SectionHeader>
+        <p className="subhead text-secondary mb-3">
+          Import sales from a CSV (Date, Customer Name, {company?.taxIdLabel ?? 'NTN #'}, Amount, Payment Status, Payment Method, Notes).
+          Missing customers are created automatically.
+        </p>
         <input
           ref={fileRef}
           type="file"
@@ -188,31 +177,16 @@ export function SettingsPage() {
         />
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => fileRef.current?.click()} loading={importSales.isPending}>
-            <IconUpload width={18} height={18} /> Import CSV
+            <Upload size={16} /> Import CSV
           </Button>
           <Button variant="secondary" onClick={() => download('/api/export/sales.csv', 'sales.csv')}>
-            <IconDownload width={18} height={18} /> Export sales
+            <Download size={16} /> Export sales
           </Button>
           <Button variant="secondary" onClick={() => download('/api/export/customers.csv', 'customers.csv')}>
-            <IconDownload width={18} height={18} /> Export customers
+            <Download size={16} /> Export customers
           </Button>
         </div>
-        {importResult && (
-          <div className="footnote" style={{ color: 'var(--label-secondary)' }}>
-            Imported {importResult.imported}, skipped {importResult.skipped}.
-            {importResult.errors.length > 0 && (
-              <ul className="mt-1" style={{ color: 'var(--danger)' }}>
-                {importResult.errors.slice(0, 5).map((er, i) => <li key={i}>• {er}</li>)}
-                {importResult.errors.length > 5 && <li>• …and {importResult.errors.length - 5} more</li>}
-              </ul>
-            )}
-          </div>
-        )}
       </div>
-
-      <SectionHeader>Session</SectionHeader>
-      <Button variant="secondary" onClick={logout}>Sign out</Button>
-      <div className="footnote text-tertiary text-center mt-4 mb-2">DistroLedger · {company?.name}</div>
     </Page>
   )
 }

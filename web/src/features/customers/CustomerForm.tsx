@@ -1,13 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useAuth } from '../../auth/AuthContext'
 import { TextField, TextareaField } from '../../components/fields'
 import { Sheet } from '../../components/Sheet'
-import { Button, ErrorNote } from '../../components/ui'
-import { apiErrorMessage } from '../../lib/api'
+import { Button } from '../../components/ui'
 import { useSaveCustomer } from '../../lib/queries'
+import { notify } from '../../lib/toast'
 import type { Customer } from '../../lib/types'
 
 const schema = z.object({
@@ -31,7 +30,6 @@ export function CustomerForm({
 }) {
   const { company } = useAuth()
   const save = useSaveCustomer()
-  const [error, setError] = useState('')
   const {
     register,
     handleSubmit,
@@ -49,7 +47,6 @@ export function CustomerForm({
   })
 
   const onSubmit = handleSubmit(async (data) => {
-    setError('')
     try {
       await save.mutateAsync({
         id: customer?.id,
@@ -62,9 +59,10 @@ export function CustomerForm({
           city: data.city || null,
         },
       })
+      notify.success(customer ? 'Customer updated' : 'Customer added')
       onClose()
     } catch (e) {
-      setError(apiErrorMessage(e))
+      notify.fromError(e)
     }
   })
 
@@ -73,16 +71,11 @@ export function CustomerForm({
       open={open}
       onClose={onClose}
       title={customer ? 'Edit customer' : 'New customer'}
-      footer={
-        <Button block onClick={onSubmit} loading={isSubmitting}>
-          {customer ? 'Save changes' : 'Add customer'}
-        </Button>
-      }
+      footer={<Button block onClick={onSubmit} loading={isSubmitting}>{customer ? 'Save changes' : 'Add customer'}</Button>}
     >
-      {error && <ErrorNote message={error} />}
       <TextField label="Name" placeholder="Zee Mart" error={errors.name?.message} {...register('name')} />
       <TextField label={company?.taxIdLabel ?? 'Tax ID'} error={errors.taxId?.message} {...register('taxId')} />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <TextField label="Phone" error={errors.phone?.message} {...register('phone')} />
         <TextField label="City" error={errors.city?.message} {...register('city')} />
       </div>

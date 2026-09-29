@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { ShieldCheck } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useAdmin } from '../../auth/AdminContext'
 import { TextField } from '../../components/fields'
-import { Button, ErrorNote } from '../../components/ui'
-import { apiErrorMessage } from '../../lib/api'
+import { ThemeToggle } from '../../components/ThemeToggle'
+import { Button } from '../../components/ui'
+import { notify } from '../../lib/toast'
 
 const schema = z.object({
   username: z.string().min(1, 'Required'),
@@ -17,7 +18,6 @@ type Form = z.infer<typeof schema>
 export function AdminLoginPage() {
   const { login } = useAdmin()
   const navigate = useNavigate()
-  const [error, setError] = useState('')
   const {
     register,
     handleSubmit,
@@ -25,32 +25,30 @@ export function AdminLoginPage() {
   } = useForm<Form>({ resolver: zodResolver(schema) })
 
   const onSubmit = handleSubmit(async (data) => {
-    setError('')
     try {
       await login(data.username.trim(), data.password)
       navigate('/admin')
     } catch (e) {
-      setError(apiErrorMessage(e, 'Incorrect admin credentials.'))
+      notify.fromError(e, 'Incorrect admin credentials.')
     }
   })
 
   return (
-    <div className="min-h-full flex items-center justify-center px-4 py-10">
+    <div className="min-h-full grid place-items-center px-4 py-10 relative">
+      <div className="absolute top-4 right-4"><ThemeToggle compact /></div>
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="footnote text-secondary" style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Platform Admin
-          </div>
+          <span className="grid place-items-center w-14 h-14 rounded-2xl bg-primary text-primary-content mx-auto mb-3">
+            <ShieldCheck size={28} />
+          </span>
+          <div className="footnote text-secondary uppercase tracking-widest">Platform Admin</div>
           <h1 className="large-title mt-1">Console</h1>
         </div>
-        <div className="card p-5 sm:p-6">
-          <form onSubmit={onSubmit} className="flex flex-col gap-2">
-            {error && <ErrorNote message={error} />}
+        <div className="panel p-6 animate-page">
+          <form onSubmit={onSubmit} className="flex flex-col gap-1">
             <TextField label="Username" autoCapitalize="none" autoComplete="username" error={errors.username?.message} {...register('username')} />
             <TextField label="Password" type="password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
-            <Button type="submit" block loading={isSubmitting} className="mt-2">
-              Sign in
-            </Button>
+            <Button type="submit" block loading={isSubmitting} className="mt-2">Sign in</Button>
           </form>
         </div>
       </div>

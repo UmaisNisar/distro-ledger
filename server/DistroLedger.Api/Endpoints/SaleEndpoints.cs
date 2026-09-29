@@ -17,7 +17,7 @@ public static class SaleEndpoints
             string? q, int page, int pageSize, CancellationToken ct) =>
         {
             page = page <= 0 ? 1 : page;
-            pageSize = pageSize is <= 0 or > 200 ? 50 : pageSize;
+            pageSize = pageSize is <= 0 or > 1000 ? 50 : pageSize;
 
             var query = db.Sales.Include(s => s.Customer).AsQueryable();
             if (year is not null) query = query.Where(s => s.Date.Year == year);

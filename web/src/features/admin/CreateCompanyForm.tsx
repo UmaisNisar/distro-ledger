@@ -1,12 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { SelectField, TextField } from '../../components/fields'
 import { Sheet } from '../../components/Sheet'
-import { Button, ErrorNote } from '../../components/ui'
-import { apiErrorMessage } from '../../lib/api'
+import { Button } from '../../components/ui'
 import { useCreateCompany } from '../../lib/adminQueries'
+import { notify } from '../../lib/toast'
 import type { CompanyCredentials } from '../../lib/types'
 
 const schema = z.object({
@@ -32,7 +31,6 @@ export function CreateCompanyForm({
   onCreated: (c: CompanyCredentials) => void
 }) {
   const create = useCreateCompany()
-  const [error, setError] = useState('')
   const {
     register,
     handleSubmit,
@@ -44,13 +42,13 @@ export function CreateCompanyForm({
   })
 
   const onSubmit = handleSubmit(async (data) => {
-    setError('')
     try {
       const result = await create.mutateAsync({ ...data, password: data.password || null })
+      notify.success(`${result.company.name} created`)
       onCreated(result)
       onClose()
     } catch (e) {
-      setError(apiErrorMessage(e))
+      notify.fromError(e)
     }
   })
 
@@ -61,7 +59,6 @@ export function CreateCompanyForm({
       title="New company"
       footer={<Button block onClick={onSubmit} loading={isSubmitting}>Create company</Button>}
     >
-      {error && <ErrorNote message={error} />}
       <TextField
         label="Company name"
         placeholder="Salah Traders"

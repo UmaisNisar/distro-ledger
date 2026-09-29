@@ -1,100 +1,108 @@
-import { Link } from 'react-router-dom'
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { CalendarRange, Plus, TrendingUp, Users, Wallet } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
-import { EmptyState, PaymentBadge, SectionHeader, SkeletonRows, StatTile } from '../../components/ui'
+import { Button, EmptyState, PaymentBadge, SectionHeader, SkeletonRows, StatTile } from '../../components/ui'
 import { money, moneyCompact, shortDate } from '../../lib/format'
 import { useOverview, useSales } from '../../lib/queries'
 
 export function DashboardPage() {
   const { company } = useAuth()
+  const navigate = useNavigate()
   const symbol = company?.currencySymbol ?? 'Rs'
-  const accent = company?.themeColor ?? '#0A84FF'
+  const accent = company?.themeColor ?? '#2563EB'
   const { data, isLoading } = useOverview()
-  const recent = useSales({ pageSize: 5, page: 1 })
+  const recent = useSales({ pageSize: 6, page: 1 })
 
   return (
-    <Page title="Overview">
-      {/* KPI tiles */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <Page
+      title={`Welcome back${company ? `, ${company.name}` : ''}`}
+      subtitle="Here's how your business is doing"
+      action={<Button onClick={() => navigate('/sales')}><Plus size={18} /> New sale</Button>}
+    >
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger">
         {isLoading || !data ? (
-          Array.from({ length: 4 }).map((_, i) => <div key={i} className="card p-4 h-[92px] skeleton" />)
+          Array.from({ length: 4 }).map((_, i) => <div key={i} className="panel h-[92px] skeleton" />)
         ) : (
           <>
-            <StatTile label="This month" value={money(data.monthSales, symbol)} hint={`${data.monthTransactions} sales`} accent />
-            <StatTile label="This year" value={moneyCompact(data.yearSales, symbol)} />
-            <StatTile label="Outstanding" value={money(data.totalOutstanding, symbol)} hint="receivables" />
-            <StatTile label="Customers" value={String(data.customerCount)} />
+            <StatTile icon={TrendingUp} label="This month" value={money(data.monthSales, symbol)} hint={`${data.monthTransactions} sales`} accent />
+            <StatTile icon={CalendarRange} label="This year" value={moneyCompact(data.yearSales, symbol)} />
+            <StatTile icon={Wallet} label="Outstanding" value={money(data.totalOutstanding, symbol)} hint="receivables" />
+            <StatTile icon={Users} label="Customers" value={String(data.customerCount)} />
           </>
         )}
       </div>
 
-      {/* Trend chart */}
-      <div className="card p-4">
-        <div className="footnote text-secondary mb-3">Monthly sales · {new Date().getFullYear()}</div>
-        <div style={{ height: 180 }}>
-          {data && (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.trend} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
-                <XAxis
-                  dataKey="monthName"
-                  tickFormatter={(m: string) => m.slice(0, 1)}
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: 'var(--label-tertiary)' }}
-                  interval={0}
-                />
-                <Tooltip
-                  cursor={{ fill: 'var(--fill)' }}
-                  contentStyle={{
-                    background: 'var(--bg-elevated)',
-                    border: '0.5px solid var(--separator)',
-                    borderRadius: 10,
-                    fontSize: 13,
-                    color: 'var(--label)',
-                  }}
-                  labelStyle={{ color: 'var(--label)' }}
-                  formatter={(v) => [money(Number(v), symbol), 'Sales']}
-                />
-                <Bar dataKey="total" fill={accent} radius={[5, 5, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
+      <div className="grid lg:grid-cols-3 gap-4">
+        {/* Chart */}
+        <div className="panel p-5 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="headline">Monthly sales</h2>
+            <span className="footnote text-secondary">{new Date().getFullYear()}</span>
+          </div>
+          <div style={{ height: 240 }} className="text-base-content">
+            {data && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.trend} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                  <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.08} />
+                  <XAxis
+                    dataKey="monthName"
+                    tickFormatter={(m: string) => m.slice(0, 3)}
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }}
+                    interval={0}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'currentColor', opacity: 0.05 }}
+                    contentStyle={{
+                      background: 'var(--color-base-100)',
+                      border: '1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent)',
+                      borderRadius: 12,
+                      fontSize: 13,
+                      color: 'var(--color-base-content)',
+                    }}
+                    formatter={(v) => [money(Number(v), symbol), 'Sales']}
+                  />
+                  <Bar dataKey="total" fill={accent} radius={[6, 6, 0, 0]} maxBarSize={48} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Recent sales */}
-      <div>
-        <div className="flex items-center justify-between">
-          <SectionHeader>Recent sales</SectionHeader>
-          <Link to="/sales" className="footnote pr-4" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-            See all
-          </Link>
-        </div>
-        {recent.isLoading ? (
-          <SkeletonRows count={5} />
-        ) : recent.data && recent.data.items.length > 0 ? (
-          <div className="inset-group">
-            {recent.data.items.map((s) => (
-              <div key={s.id} className="list-row">
-                <div className="min-w-0">
-                  <div className="subhead truncate" style={{ fontWeight: 600 }}>{s.customerName}</div>
-                  <div className="footnote text-secondary truncate">
-                    {s.invoiceNumber} · {shortDate(s.date)}
+        {/* Recent sales */}
+        <div className="panel p-5">
+          <SectionHeader action={<Link to="/sales" className="footnote link link-primary no-underline">See all</Link>}>
+            Recent sales
+          </SectionHeader>
+          {recent.isLoading ? (
+            <SkeletonRows count={5} />
+          ) : recent.data && recent.data.items.length > 0 ? (
+            <div className="flex flex-col divide-y divide-base-200">
+              {recent.data.items.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center gap-3 py-2.5 cursor-pointer hover:bg-base-200 -mx-2 px-2 rounded-lg transition-colors"
+                  onClick={() => navigate('/sales')}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="subhead font-semibold truncate">{s.customerName}</div>
+                    <div className="footnote text-secondary truncate">{s.invoiceNumber} · {shortDate(s.date)}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="subhead font-semibold tabular">{money(s.amount, symbol)}</div>
+                    <PaymentBadge status={s.paymentStatus} />
                   </div>
                 </div>
-                <div className="ml-auto text-right shrink-0">
-                  <div className="subhead" style={{ fontWeight: 600 }}>{money(s.amount, symbol)}</div>
-                  <PaymentBadge status={s.paymentStatus} />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="card">
-            <EmptyState title="No sales yet" subtitle="Add your first sale from the Sales tab." />
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={TrendingUp} title="No sales yet" subtitle="Add your first sale to see it here." />
+          )}
+        </div>
       </div>
     </Page>
   )

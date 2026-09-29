@@ -1,48 +1,72 @@
-import { Link } from 'react-router-dom'
+import { CheckCircle2, Wallet } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
-import { EmptyState, SectionHeader, SkeletonRows, StatTile } from '../../components/ui'
+import { EmptyState, SkeletonRows, StatTile } from '../../components/ui'
 import { money, shortDate } from '../../lib/format'
 import { useReceivables } from '../../lib/queries'
 
 export function ReceivablesPage() {
   const { company } = useAuth()
   const symbol = company?.currencySymbol ?? 'Rs'
+  const navigate = useNavigate()
   const { data, isLoading } = useReceivables()
 
   return (
-    <Page title="Receivables">
+    <Page title="Receivables" subtitle="Outstanding balances by customer">
       {isLoading || !data ? (
         <SkeletonRows count={6} />
       ) : data.customers.length === 0 ? (
-        <div className="card">
-          <EmptyState title="All settled" subtitle="No outstanding balances right now." />
+        <div className="panel">
+          <EmptyState icon={CheckCircle2} title="All settled" subtitle="No outstanding balances right now." />
         </div>
       ) : (
         <>
-          <StatTile label="Total outstanding" value={money(data.totalOutstanding, symbol)} accent />
+          <div className="grid sm:grid-cols-3 gap-4 stagger">
+            <StatTile icon={Wallet} label="Total outstanding" value={money(data.totalOutstanding, symbol)} accent />
+            <StatTile label="Customers owing" value={String(data.customers.length)} />
+            <StatTile
+              label="Over 90 days"
+              value={money(data.customers.reduce((s, c) => s + c.days90Plus, 0), symbol)}
+            />
+          </div>
 
-          <SectionHeader>By customer</SectionHeader>
-          <div className="inset-group">
-            {data.customers.map((c) => (
-              <Link key={c.customerId} to={`/customers/${c.customerId}`} className="list-row list-row-tap block">
-                <div className="min-w-0 flex-1">
-                  <div className="subhead truncate" style={{ fontWeight: 600 }}>{c.customerName}</div>
-                  <div className="footnote text-secondary truncate">
-                    {c.openInvoices} open · oldest {c.oldestDate ? shortDate(c.oldestDate) : '—'}
-                  </div>
-                  <div className="flex gap-1.5 mt-1 flex-wrap">
-                    <AgeChip label="≤30d" value={c.current} symbol={symbol} tone="ok" />
-                    <AgeChip label="31–60" value={c.days31To60} symbol={symbol} tone="warn" />
-                    <AgeChip label="61–90" value={c.days61To90} symbol={symbol} tone="warn" />
-                    <AgeChip label="90+" value={c.days90Plus} symbol={symbol} tone="bad" />
-                  </div>
-                </div>
-                <div className="ml-3 text-right shrink-0">
-                  <div className="subhead" style={{ fontWeight: 700 }}>{money(c.outstanding, symbol)}</div>
-                </div>
-              </Link>
-            ))}
+          <div className="panel overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th className="text-right">≤30d</th>
+                    <th className="text-right">31–60</th>
+                    <th className="text-right">61–90</th>
+                    <th className="text-right">90+</th>
+                    <th className="text-right">Outstanding</th>
+                    <th>Oldest</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.customers.map((c) => (
+                    <tr
+                      key={c.customerId}
+                      className="hover:bg-base-200 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/customers/${c.customerId}`)}
+                    >
+                      <td className="font-medium">
+                        {c.customerName}
+                        <div className="footnote text-tertiary">{c.openInvoices} open</div>
+                      </td>
+                      <Cell v={c.current} symbol={symbol} />
+                      <Cell v={c.days31To60} symbol={symbol} warn />
+                      <Cell v={c.days61To90} symbol={symbol} warn />
+                      <Cell v={c.days90Plus} symbol={symbol} bad />
+                      <td className="text-right font-bold tabular">{money(c.outstanding, symbol)}</td>
+                      <td className="text-secondary whitespace-nowrap">{c.oldestDate ? shortDate(c.oldestDate) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
@@ -50,25 +74,10 @@ export function ReceivablesPage() {
   )
 }
 
-function AgeChip({
-  label,
-  value,
-  symbol,
-  tone,
-}: {
-  label: string
-  value: number
-  symbol: string
-  tone: 'ok' | 'warn' | 'bad'
-}) {
-  if (value <= 0) return null
-  const color = tone === 'ok' ? 'var(--success)' : tone === 'warn' ? 'var(--warning)' : 'var(--danger)'
+function Cell({ v, symbol, warn, bad }: { v: number; symbol: string; warn?: boolean; bad?: boolean }) {
   return (
-    <span
-      className="badge"
-      style={{ background: `color-mix(in srgb, ${color} 14%, transparent)`, color }}
-    >
-      {label}: {money(value, symbol)}
-    </span>
+    <td className="text-right tabular" style={{ color: v <= 0 ? 'var(--color-base-content)' : bad ? 'var(--color-error)' : warn ? 'var(--color-warning)' : undefined, opacity: v <= 0 ? 0.35 : 1 }}>
+      {v > 0 ? money(v, symbol) : '—'}
+    </td>
   )
 }

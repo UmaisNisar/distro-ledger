@@ -1,3 +1,4 @@
+import { ArrowLeft, CalendarDays, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
@@ -5,8 +6,9 @@ import { Page } from '../../components/Page'
 import { Button, EmptyState, SectionHeader, SkeletonRows, StatTile } from '../../components/ui'
 import { money } from '../../lib/format'
 import { useCustomer, useCustomerSummary, useDeleteCustomer } from '../../lib/queries'
-import { apiErrorMessage } from '../../lib/api'
+import { notify } from '../../lib/toast'
 import { CustomerForm } from './CustomerForm'
+import { Receipt, Wallet } from 'lucide-react'
 
 export function CustomerDetailPage() {
   const { id } = useParams()
@@ -20,16 +22,16 @@ export function CustomerDetailPage() {
   const customer = useCustomer(id)
   const summary = useCustomerSummary(id, year)
   const del = useDeleteCustomer()
-
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i)
 
   const onDelete = async () => {
     if (!id || !confirm('Delete this customer?')) return
     try {
       await del.mutateAsync(id)
+      notify.success('Customer deleted')
       navigate('/customers')
     } catch (e) {
-      alert(apiErrorMessage(e))
+      notify.fromError(e)
     }
   }
 
@@ -37,69 +39,67 @@ export function CustomerDetailPage() {
     <Page
       title={customer.data?.name ?? 'Customer'}
       action={
-        <Button variant="ghost" onClick={() => navigate('/customers')}>
-          Back
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={() => navigate('/customers')}><ArrowLeft size={18} /> Back</Button>
+          <Button variant="secondary" onClick={() => setEditOpen(true)}><Pencil size={16} /> Edit</Button>
+          <Button variant="danger" onClick={onDelete} loading={del.isPending}><Trash2 size={16} /></Button>
+        </div>
       }
     >
       {customer.isLoading || !customer.data ? (
         <SkeletonRows count={3} />
       ) : (
         <>
-          {/* Info */}
-          <div className="inset-group">
-            <InfoRow label={company?.taxIdLabel ?? 'Tax ID'} value={customer.data.taxId ?? '—'} />
-            <InfoRow label="Phone" value={customer.data.phone ?? '—'} />
-            <InfoRow label="City" value={customer.data.city ?? '—'} />
-            <InfoRow label="Address" value={customer.data.address ?? '—'} />
-            {customer.data.otherIds && <InfoRow label="Other IDs" value={customer.data.otherIds} />}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="panel p-5">
+              <SectionHeader>Details</SectionHeader>
+              <dl className="grid grid-cols-3 gap-y-2.5 text-sm">
+                <Info label={company?.taxIdLabel ?? 'Tax ID'} value={customer.data.taxId} />
+                <Info label="Phone" value={customer.data.phone} />
+                <Info label="City" value={customer.data.city} />
+                <Info label="Address" value={customer.data.address} />
+                {customer.data.otherIds && <Info label="Other IDs" value={customer.data.otherIds} />}
+              </dl>
+            </div>
+            <div className="grid grid-cols-2 gap-4 content-start">
+              <StatTile icon={Receipt} label={`${year} sales`} value={money(summary.data?.yearSales ?? 0, symbol)} accent />
+              <StatTile icon={Wallet} label="Transactions" value={String(summary.data?.yearTransactions ?? 0)} />
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="secondary" block onClick={() => setEditOpen(true)}>Edit</Button>
-            <Button variant="danger" onClick={onDelete} loading={del.isPending}>Delete</Button>
-          </div>
-
-          {/* Year breakdown (Lookup tab) */}
-          <div className="flex items-center justify-between mt-2">
-            <SectionHeader>Sales by month</SectionHeader>
-            <select
-              className="field-input"
-              style={{ width: 'auto', height: 36, paddingRight: 30 }}
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-            >
-              {years.map((y) => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
+          <SectionHeader
+            action={
+              <select className="select select-sm" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+                {years.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            }
+          >
+            Sales by month
+          </SectionHeader>
 
           {summary.isLoading || !summary.data ? (
-            <SkeletonRows count={6} />
+            <SkeletonRows count={5} />
+          ) : summary.data.yearTransactions === 0 ? (
+            <div className="panel">
+              <EmptyState icon={CalendarDays} title="No sales this year" subtitle={`Nothing recorded for ${year}.`} />
+            </div>
           ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <StatTile label={`${year} sales`} value={money(summary.data.yearSales, symbol)} accent />
-                <StatTile label="Transactions" value={String(summary.data.yearTransactions)} />
-              </div>
-
-              {summary.data.yearTransactions === 0 ? (
-                <div className="card">
-                  <EmptyState title="No sales this year" subtitle={`Nothing recorded for ${year}.`} />
-                </div>
-              ) : (
-                <div className="inset-group">
-                  {summary.data.months
-                    .filter((m) => m.transactions > 0)
-                    .map((m) => (
-                      <div key={m.month} className="list-row">
-                        <span className="subhead" style={{ fontWeight: 600 }}>{m.monthName}</span>
-                        <span className="ml-auto footnote text-secondary">{m.transactions} sales</span>
-                        <span className="subhead ml-4" style={{ fontWeight: 600 }}>{money(m.sales, symbol)}</span>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </>
+            <div className="panel overflow-hidden">
+              <table className="table">
+                <thead>
+                  <tr><th>Month</th><th className="text-right">Transactions</th><th className="text-right">Sales</th></tr>
+                </thead>
+                <tbody>
+                  {summary.data.months.filter((m) => m.transactions > 0).map((m) => (
+                    <tr key={m.month} className="hover:bg-base-200 transition-colors">
+                      <td className="font-medium">{m.monthName}</td>
+                      <td className="text-right text-secondary tabular">{m.transactions}</td>
+                      <td className="text-right font-semibold tabular">{money(m.sales, symbol)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </>
       )}
@@ -111,11 +111,11 @@ export function CustomerDetailPage() {
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function Info({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="list-row">
-      <span className="subhead text-secondary">{label}</span>
-      <span className="subhead ml-auto text-right" style={{ fontWeight: 500 }}>{value}</span>
-    </div>
+    <>
+      <dt className="text-secondary col-span-1">{label}</dt>
+      <dd className="col-span-2 font-medium break-words">{value || '—'}</dd>
+    </>
   )
 }

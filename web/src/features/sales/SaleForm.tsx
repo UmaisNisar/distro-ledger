@@ -1,12 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { SelectField, TextField, TextareaField } from '../../components/fields'
 import { Sheet } from '../../components/Sheet'
-import { Button, ErrorNote } from '../../components/ui'
-import { apiErrorMessage } from '../../lib/api'
+import { Button } from '../../components/ui'
+import { notify } from '../../lib/toast'
 import { inputDate } from '../../lib/format'
 import { useDeleteSale, useSaveSale } from '../../lib/queries'
 import type { Customer, Sale } from '../../lib/types'
@@ -44,7 +43,6 @@ export function SaleForm({
   const save = useSaveSale()
   const del = useDeleteSale()
   const navigate = useNavigate()
-  const [error, setError] = useState('')
 
   const {
     register,
@@ -72,7 +70,6 @@ export function SaleForm({
   })
 
   const onSubmit = handleSubmit(async (data) => {
-    setError('')
     try {
       await save.mutateAsync({
         id: sale?.id,
@@ -86,9 +83,10 @@ export function SaleForm({
           notes: data.notes || null,
         },
       })
+      notify.success(sale ? 'Sale updated' : 'Sale added')
       onClose()
     } catch (e) {
-      setError(apiErrorMessage(e))
+      notify.fromError(e)
     }
   })
 
@@ -96,9 +94,10 @@ export function SaleForm({
     if (!sale || !confirm('Delete this sale?')) return
     try {
       await del.mutateAsync(sale.id)
+      notify.success('Sale deleted')
       onClose()
     } catch (e) {
-      setError(apiErrorMessage(e))
+      notify.fromError(e)
     }
   }
 
@@ -125,7 +124,6 @@ export function SaleForm({
         </div>
       }
     >
-      {error && <ErrorNote message={error} />}
       <SelectField label="Customer" error={errors.customerId?.message} {...register('customerId')}>
         <option value="">Select a customer…</option>
         {customers.map((c) => (

@@ -1,38 +1,97 @@
-import { useState } from 'react'
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type SortingState,
+} from '@tanstack/react-table'
+import { ArrowDown, ArrowUp, ChevronsUpDown, Plus, Receipt, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
 import { Segmented } from '../../components/fields'
-import { IconPlus, IconSearch } from '../../components/icons'
 import { Button, EmptyState, PaymentBadge, SkeletonRows } from '../../components/ui'
 import { money, MONTHS, shortDate } from '../../lib/format'
 import { useCustomers, useSales } from '../../lib/queries'
 import type { Sale } from '../../lib/types'
 import { SaleForm } from './SaleForm'
 
-const PAGE_SIZE = 25
+const col = createColumnHelper<Sale>()
 
 export function SalesPage() {
   const { company } = useAuth()
   const symbol = company?.currencySymbol ?? 'Rs'
   const now = new Date()
 
-  const [q, setQ] = useState('')
   const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(0) // 0 = all
+  const [month, setMonth] = useState(0)
   const [status, setStatus] = useState('')
-  const [page, setPage] = useState(1)
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: true }])
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Sale | undefined>()
 
   const customers = useCustomers()
   const { data, isLoading } = useSales({
-    q: q || undefined,
     year,
     month: month || undefined,
     status: status || undefined,
-    page,
-    pageSize: PAGE_SIZE,
+    page: 1,
+    pageSize: 1000,
+  })
+  const rows = useMemo(() => data?.items ?? [], [data])
+
+  const columns = useMemo(
+    () => [
+      col.accessor('invoiceNumber', {
+        header: 'Invoice #',
+        cell: (c) => <span className="font-medium tabular">{c.getValue()}</span>,
+      }),
+      col.accessor('date', {
+        header: 'Date',
+        cell: (c) => <span className="whitespace-nowrap">{shortDate(c.getValue())}</span>,
+      }),
+      col.accessor('customerName', { header: 'Customer' }),
+      col.accessor('amount', {
+        header: 'Amount',
+        cell: (c) => <span className="tabular">{money(c.getValue(), symbol)}</span>,
+      }),
+      col.accessor('outstanding', {
+        header: 'Outstanding',
+        cell: (c) => (
+          <span className="tabular" style={{ color: c.getValue() > 0 ? 'var(--color-warning)' : undefined }}>
+            {money(c.getValue(), symbol)}
+          </span>
+        ),
+      }),
+      col.accessor('paymentStatus', {
+        header: 'Status',
+        cell: (c) => <PaymentBadge status={c.getValue()} />,
+        sortingFn: (a, b) => a.original.paymentStatus.localeCompare(b.original.paymentStatus),
+      }),
+      col.accessor('paymentMethod', {
+        header: 'Method',
+        cell: (c) => c.getValue() ?? <span className="text-tertiary">—</span>,
+      }),
+    ],
+    [symbol],
+  )
+
+  const table = useReactTable({
+    data: rows,
+    columns,
+    state: { sorting, globalFilter },
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 12 } },
   })
 
   const openNew = () => {
@@ -45,147 +104,140 @@ export function SalesPage() {
   }
 
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i)
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
   const noCustomers = customers.data && customers.data.length === 0
+  const pageIndex = table.getState().pagination.pageIndex
+  const pageCount = table.getPageCount()
 
   return (
     <Page
       title="Sales"
+      subtitle={data ? `${rows.length} record${rows.length === 1 ? '' : 's'} in view` : undefined}
       action={
         <Button onClick={openNew} disabled={noCustomers}>
-          <IconPlus width={20} height={20} /> New
+          <Plus size={18} /> New sale
         </Button>
       }
     >
-      {/* Filters */}
-      <div className="flex flex-col gap-3">
-        <div className="relative">
-          <IconSearch
-            width={18}
-            height={18}
-            style={{ position: 'absolute', left: 12, top: 13, color: 'var(--label-tertiary)' }}
-          />
+      {/* Toolbar */}
+      <div className="panel p-3 flex flex-col lg:flex-row lg:items-center gap-3">
+        <label className="input flex items-center gap-2 flex-1 min-w-0">
+          <Search size={18} className="opacity-60 shrink-0" />
           <input
-            className="field-input"
-            style={{ paddingLeft: 38 }}
-            placeholder="Search invoice or customer"
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value)
-              setPage(1)
-            }}
+            className="grow"
+            placeholder="Search invoice or customer…"
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
           />
-        </div>
-
-        <div className="flex gap-2">
-          <select
-            className="field-input"
-            style={{ flex: 1 }}
-            value={year}
-            onChange={(e) => {
-              setYear(Number(e.target.value))
-              setPage(1)
-            }}
-          >
+        </label>
+        <div className="flex items-center gap-2 flex-wrap">
+          <select className="select select-sm" value={year} onChange={(e) => setYear(Number(e.target.value))}>
             {years.map((y) => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
-          <select
-            className="field-input"
-            style={{ flex: 1 }}
-            value={month}
-            onChange={(e) => {
-              setMonth(Number(e.target.value))
-              setPage(1)
-            }}
-          >
+          <select className="select select-sm" value={month} onChange={(e) => setMonth(Number(e.target.value))}>
             <option value={0}>All months</option>
             {MONTHS.map((m, i) => (
               <option key={m} value={i + 1}>{m}</option>
             ))}
           </select>
+          <Segmented
+            value={status}
+            onChange={setStatus}
+            options={[
+              { value: '', label: 'All' },
+              { value: 'Unpaid', label: 'Unpaid' },
+              { value: 'Partial', label: 'Partial' },
+              { value: 'Paid', label: 'Paid' },
+            ]}
+          />
         </div>
-
-        <Segmented
-          value={status}
-          onChange={(v) => {
-            setStatus(v)
-            setPage(1)
-          }}
-          options={[
-            { value: '', label: 'All' },
-            { value: 'Unpaid', label: 'Unpaid' },
-            { value: 'Partial', label: 'Partial' },
-            { value: 'Paid', label: 'Paid' },
-          ]}
-        />
       </div>
 
-      {/* List */}
+      {/* Grid */}
       {noCustomers ? (
-        <div className="card">
-          <EmptyState
-            title="Add a customer first"
-            subtitle="You need at least one customer before recording a sale."
-          />
+        <div className="panel">
+          <EmptyState icon={Receipt} title="Add a customer first" subtitle="You need a customer before recording a sale." />
         </div>
       ) : isLoading ? (
         <SkeletonRows count={8} />
-      ) : data && data.items.length > 0 ? (
-        <>
-          <div className="inset-group">
-            {data.items.map((s) => (
-              <div key={s.id} className="list-row list-row-tap" onClick={() => openEdit(s)}>
-                <div className="min-w-0">
-                  <div className="subhead truncate" style={{ fontWeight: 600 }}>{s.customerName}</div>
-                  <div className="footnote text-secondary truncate">
-                    {s.invoiceNumber} · {shortDate(s.date)}
-                    {s.paymentMethod ? ` · ${s.paymentMethod}` : ''}
-                  </div>
-                </div>
-                <div className="ml-auto text-right shrink-0">
-                  <div className="subhead" style={{ fontWeight: 600 }}>{money(s.amount, symbol)}</div>
-                  <PaymentBadge status={s.paymentStatus} />
-                </div>
-              </div>
-            ))}
+      ) : rows.length === 0 ? (
+        <div className="panel">
+          <EmptyState
+            icon={Receipt}
+            title="No sales found"
+            subtitle="Try different filters, or record a new sale."
+            action={<Button onClick={openNew}><Plus size={18} /> New sale</Button>}
+          />
+        </div>
+      ) : (
+        <div className="panel overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="table">
+              <thead>
+                {table.getHeaderGroups().map((hg) => (
+                  <tr key={hg.id}>
+                    {hg.headers.map((h) => {
+                      const sorted = h.column.getIsSorted()
+                      return (
+                        <th
+                          key={h.id}
+                          className="cursor-pointer select-none whitespace-nowrap hover:text-primary transition-colors"
+                          onClick={h.column.getToggleSortingHandler()}
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            {flexRender(h.column.columnDef.header, h.getContext())}
+                            {sorted === 'asc' ? (
+                              <ArrowUp size={14} />
+                            ) : sorted === 'desc' ? (
+                              <ArrowDown size={14} />
+                            ) : (
+                              <ChevronsUpDown size={13} className="opacity-30" />
+                            )}
+                          </span>
+                        </th>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </thead>
+              <tbody>
+                {table.getRowModel().rows.map((r) => (
+                  <tr
+                    key={r.id}
+                    className="hover:bg-base-200 cursor-pointer transition-colors"
+                    onClick={() => openEdit(r.original)}
+                  >
+                    {r.getVisibleCells().map((cell) => (
+                      <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          <div className="flex items-center justify-between mt-1">
-            <span className="footnote text-secondary">
-              {data.total} sale{data.total === 1 ? '' : 's'}
-            </span>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          {/* Pagination */}
+          {pageCount > 1 && (
+            <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-base-300">
+              <span className="footnote text-secondary">
+                Page {pageIndex + 1} of {pageCount}
+              </span>
+              <div className="join">
+                <button className="btn btn-sm join-item" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()}>
                   Prev
-                </Button>
-                <span className="footnote text-secondary">{page} / {totalPages}</span>
-                <Button variant="secondary" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+                </button>
+                <button className="btn btn-sm join-item" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()}>
                   Next
-                </Button>
+                </button>
               </div>
-            )}
-          </div>
-        </>
-      ) : (
-        <div className="card">
-          <EmptyState
-            title="No sales found"
-            subtitle="Try clearing filters, or add a new sale."
-            action={<Button onClick={openNew}>Add sale</Button>}
-          />
+            </div>
+          )}
         </div>
       )}
 
       {formOpen && (
-        <SaleForm
-          open={formOpen}
-          onClose={() => setFormOpen(false)}
-          sale={editing}
-          customers={customers.data ?? []}
-        />
+        <SaleForm open={formOpen} onClose={() => setFormOpen(false)} sale={editing} customers={customers.data ?? []} />
       )}
     </Page>
   )

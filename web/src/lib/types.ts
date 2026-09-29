@@ -123,3 +123,28 @@ export interface ImportResult {
   skipped: number
   errors: string[]
 }
+
+// ---------- Admin ----------
+export interface AdminAuth {
+  token: string
+  expiresAt: string
+  username: string
+}
+
+export interface CompanyAdmin {
+  id: string
+  name: string
+  slug: string
+  currencyCode: string
+  currencySymbol: string
+  customerCount: number
+  saleCount: number
+  totalSales: number
+  createdAt: string
+}
+
+export interface CompanyCredentials {
+  company: CompanyAdmin
+  slug: string
+  password: string
+}

@@ -63,6 +63,11 @@ export function LoginPage() {
           Get started
         </Link>
       </p>
+      <p className="footnote text-tertiary text-center mt-3">
+        <Link to="/admin/login" style={{ color: 'var(--label-tertiary)' }}>
+          Admin console
+        </Link>
+      </p>
     </AuthShell>
   )
 }

@@ -1,7 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './app/AppLayout'
+import { useAdmin } from './auth/AdminContext'
 import { useAuth } from './auth/AuthContext'
 import { Spinner } from './components/ui'
+import { AdminDashboard } from './features/admin/AdminDashboard'
+import { AdminLoginPage } from './features/admin/AdminLoginPage'
 import { CustomerDetailPage } from './features/customers/CustomerDetailPage'
 import { CustomersPage } from './features/customers/CustomersPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
@@ -35,11 +38,29 @@ function PublicOnly({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const { authed, ready } = useAdmin()
+  if (!ready) return <Splash />
+  if (!authed) return <Navigate to="/admin/login" replace />
+  return <>{children}</>
+}
+
+function AdminPublicOnly({ children }: { children: ReactNode }) {
+  const { authed, ready } = useAdmin()
+  if (!ready) return <Splash />
+  if (authed) return <Navigate to="/admin" replace />
+  return <>{children}</>
+}
+
 export function App() {
   return (
     <Routes>
       <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
       <Route path="/onboarding" element={<PublicOnly><OnboardingPage /></PublicOnly>} />
+
+      {/* Platform admin */}
+      <Route path="/admin/login" element={<AdminPublicOnly><AdminLoginPage /></AdminPublicOnly>} />
+      <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
 
       {/* Printable invoice (authed, no app chrome) */}
       <Route path="/invoice/:id" element={<RequireAuth><InvoicePage /></RequireAuth>} />

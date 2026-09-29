@@ -30,20 +30,31 @@ builder.Services.PostConfigure<JwtOptions>(o =>
     if (string.IsNullOrWhiteSpace(o.Secret)) o.Secret = jwt.Secret;
 });
 
+// Platform-admin credentials (you).
+builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.SectionName));
+
 // ---- JSON: serialize enums as strings ----
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // ---- Database ----
-// Skipped under the "Testing" environment so integration tests can register their own
-// in-memory provider (EF Core allows only one provider per service provider).
+// Skipped under the "Testing" environment so integration tests register their own provider.
+// UseInMemoryDb=true runs a zero-dependency local demo (no Postgres needed).
 var isTesting = builder.Environment.IsEnvironment("Testing");
+var useInMemory = builder.Configuration.GetValue("UseInMemoryDb", false);
 if (!isTesting)
 {
-    var effectiveConn = string.IsNullOrWhiteSpace(connectionString)
-        ? "Host=localhost;Database=distroledger;Username=postgres;Password=postgres"
-        : connectionString;
-    builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(effectiveConn));
+    if (useInMemory)
+    {
+        builder.Services.AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase("distroledger-demo"));
+    }
+    else
+    {
+        var effectiveConn = string.IsNullOrWhiteSpace(connectionString)
+            ? "Host=localhost;Database=distroledger;Username=postgres;Password=postgres"
+            : connectionString;
+        builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(effectiveConn));
+    }
 }
 
 // ---- Tenant resolution + app services ----
@@ -69,7 +80,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret))
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(o =>
+    o.AddPolicy(AuthClaims.AdminPolicy, p => p.RequireClaim(AuthClaims.IsAdmin, "true")));
 
 // ---- CORS ----
 var origins = (builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
@@ -81,15 +93,24 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// ---- Apply migrations on startup (self-provisions a fresh Neon DB) ----
-if (!isTesting &&
-    !string.IsNullOrWhiteSpace(connectionString) &&
-    builder.Configuration.GetValue("RunMigrations", true))
+// ---- Database init on startup ----
+if (!isTesting)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (db.Database.IsRelational())
+    if (useInMemory)
+    {
+        // Local demo: build schema from the model and seed sample data.
+        db.Database.EnsureCreated();
+        DemoSeeder.Seed(db, scope.ServiceProvider.GetRequiredService<PasswordHasher>());
+    }
+    else if (!string.IsNullOrWhiteSpace(connectionString) &&
+             builder.Configuration.GetValue("RunMigrations", true) &&
+             db.Database.IsRelational())
+    {
+        // Self-provision a fresh Neon/Postgres DB.
         db.Database.Migrate();
+    }
 }
 
 app.UseCors("web");
@@ -101,6 +122,7 @@ app.MapGet("/", () => Results.Ok(new { service = "DistroLedger API", status = "o
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 app.MapAuthEndpoints();
+app.MapAdminEndpoints();
 app.MapCustomerEndpoints();
 app.MapSaleEndpoints();
 app.MapDashboardEndpoints();

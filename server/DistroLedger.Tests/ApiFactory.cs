@@ -14,12 +14,15 @@ namespace DistroLedger.Tests;
 /// </summary>
 public class ApiFactory : WebApplicationFactory<Program>
 {
+    public const string AdminPassword = "test-admin-password";
     private readonly string _dbName = "itest-" + Guid.NewGuid();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("Jwt:Secret", "integration-test-secret-key-long-enough-for-hmac256!!");
+        builder.UseSetting("Admin:Username", "admin");
+        builder.UseSetting("Admin:Password", AdminPassword);
 
         builder.ConfigureServices(services =>
         {

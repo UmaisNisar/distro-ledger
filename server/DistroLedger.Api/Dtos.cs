@@ -133,3 +133,35 @@ public record ReceivablesDto(decimal TotalOutstanding, IReadOnlyList<ReceivableC
 
 // ---------- Import ----------
 public record ImportResult(int Imported, int Skipped, IReadOnlyList<string> Errors);
+
+// ---------- Admin (platform owner) ----------
+public record AdminLoginRequest(string Username, string Password);
+
+public record AdminAuthResponse(string Token, DateTime ExpiresAt, string Username);
+
+public record CreateCompanyRequest(
+    string Name,
+    string Slug,
+    string? Password,          // blank => auto-generated and returned
+    string? ThemeColor,
+    string? CurrencyCode,
+    string? CurrencySymbol,
+    string? TaxIdLabel,
+    string? InvoicePrefix,
+    string? Address,
+    string? Phone,
+    string? City);
+
+public record CompanyAdminDto(
+    Guid Id,
+    string Name,
+    string Slug,
+    string CurrencyCode,
+    string CurrencySymbol,
+    int CustomerCount,
+    int SaleCount,
+    decimal TotalSales,
+    DateTime CreatedAt);
+
+/// <summary>Returned on create / reset — the plaintext password is shown only once.</summary>
+public record CompanyCredentials(CompanyAdminDto Company, string Slug, string Password);

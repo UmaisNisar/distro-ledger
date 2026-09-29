@@ -34,4 +34,26 @@ public class TokenService
 
         return (new JwtSecurityTokenHandler().WriteToken(token), expires);
     }
+
+    /// <summary>Issues a platform-admin token (no tenant; carries the isAdmin claim).</summary>
+    public (string token, DateTime expiresAt) CreateAdmin(string username)
+    {
+        var expires = DateTime.UtcNow.AddDays(_opts.ExpiryDays);
+        var claims = new[]
+        {
+            new Claim(AuthClaims.IsAdmin, "true"),
+            new Claim(JwtRegisteredClaimNames.Sub, "admin:" + username)
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_opts.Secret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            issuer: _opts.Issuer,
+            audience: _opts.Audience,
+            claims: claims,
+            expires: expires,
+            signingCredentials: creds);
+
+        return (new JwtSecurityTokenHandler().WriteToken(token), expires);
+    }
 }

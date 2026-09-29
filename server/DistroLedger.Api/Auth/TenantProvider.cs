@@ -24,4 +24,6 @@ public static class AuthClaims
 {
     public const string TenantId = "tenantId";
     public const string Slug = "slug";
+    public const string IsAdmin = "isAdmin";
+    public const string AdminPolicy = "Admin";
 }

@@ -5,7 +5,6 @@ import { useAuth } from './auth/AuthContext'
 import { Spinner } from './components/ui'
 import { AdminDashboard } from './features/admin/AdminDashboard'
 import { AdminLoginPage } from './features/admin/AdminLoginPage'
-import { CustomerDetailPage } from './features/customers/CustomerDetailPage'
 import { CustomersPage } from './features/customers/CustomersPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import { InvoicePage } from './features/invoice/InvoicePage'
@@ -69,7 +68,7 @@ export function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/sales" element={<SalesPage />} />
         <Route path="/customers" element={<CustomersPage />} />
-        <Route path="/customers/:id" element={<CustomerDetailPage />} />
+        <Route path="/customers/:id" element={<CustomersPage />} />
         <Route path="/receivables" element={<ReceivablesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

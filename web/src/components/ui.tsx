@@ -66,6 +66,8 @@ export function StatTile({
   icon: Icon,
   accent,
   invert,
+  onClick,
+  size = 'md',
 }: {
   label: string
   value: string
@@ -74,7 +76,12 @@ export function StatTile({
   accent?: boolean
   /** Dark, high-emphasis tile — use for the primary KPI. */
   invert?: boolean
+  /** When set, the whole tile is a button. */
+  onClick?: () => void
+  /** 'sm' for narrow tiles (e.g. inside a detail panel). */
+  size?: 'sm' | 'md'
 }) {
+  const sm = size === 'sm'
   const iconBg = invert
     ? 'rgba(255,255,255,0.12)'
     : accent
@@ -85,31 +92,33 @@ export function StatTile({
     : accent
       ? 'var(--color-primary)'
       : 'var(--color-base-content)'
+  const Tag = onClick ? 'button' : 'div'
   return (
-    <div
-      className={`panel panel-hover p-5 flex items-start gap-3 min-w-0 ${invert ? 'border-transparent' : ''}`}
+    <Tag
+      onClick={onClick}
+      className={`panel panel-hover ${sm ? 'p-4 gap-3' : 'p-5 gap-3.5'} flex items-start min-w-0 w-full text-left ${invert ? 'border-transparent' : ''} ${onClick ? 'cursor-pointer' : ''}`}
       style={invert ? { background: 'var(--color-neutral)', color: 'var(--color-neutral-content)' } : undefined}
     >
       {Icon && (
         <span
           className="hidden sm:grid place-items-center rounded-xl shrink-0"
-          style={{ width: 40, height: 40, background: iconBg, color: iconColor }}
+          style={{ width: sm ? 38 : 44, height: sm ? 38 : 44, background: iconBg, color: iconColor }}
         >
-          <Icon size={20} />
+          <Icon size={sm ? 19 : 22} />
         </span>
       )}
       <div className="min-w-0">
         <div className={`footnote truncate ${invert ? 'opacity-70' : 'text-secondary'}`}>{label}</div>
         <div
           className="tabular truncate font-semibold"
-          style={{ fontSize: 'clamp(1.15rem, 5vw, 1.6rem)', lineHeight: 1.15 }}
+          style={{ fontSize: sm ? 'clamp(1.05rem, 3vw, 1.3rem)' : 'clamp(1.2rem, 5vw, 1.85rem)', lineHeight: 1.15 }}
           title={value}
         >
           {value}
         </div>
         {hint && <div className={`footnote truncate ${invert ? 'opacity-60' : 'text-tertiary'}`}>{hint}</div>}
       </div>
-    </div>
+    </Tag>
   )
 }
 

@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '../../auth/AuthContext'
-import { SelectField, TextField } from '../../components/fields'
+import { PasswordField, SelectField, TextField } from '../../components/fields'
 import { Button } from '../../components/ui'
 import { notify } from '../../lib/toast'
 import { ACCENT_PRESETS, applyAccent } from '../../theme/theme'
@@ -131,8 +131,8 @@ export function OnboardingPage() {
         {step === 2 && (
           <>
             <p className="subhead text-secondary mb-1">One shared password signs your whole team into this company.</p>
-            <TextField label="Password" type="password" autoComplete="new-password" error={errors.password?.message} {...register('password')} />
-            <TextField label="Confirm password" type="password" autoComplete="new-password" error={errors.confirm?.message} {...register('confirm')} />
+            <PasswordField label="Password" autoComplete="new-password" error={errors.password?.message} {...register('password')} />
+            <PasswordField label="Confirm password" autoComplete="new-password" error={errors.confirm?.message} {...register('confirm')} />
           </>
         )}
 

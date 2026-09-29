@@ -1,77 +1,230 @@
-import { ChevronRight, Plus, Search, Users } from 'lucide-react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { CalendarDays, Pencil, Plus, Receipt, Search, Trash2, Users, Wallet } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import { useConfirm } from '../../components/ConfirmProvider'
+import { MonthBarChart } from '../../components/MonthBarChart'
 import { Page } from '../../components/Page'
-import { Button, EmptyState, SkeletonRows } from '../../components/ui'
-import { money } from '../../lib/format'
-import { useCustomers } from '../../lib/queries'
+import { Segmented } from '../../components/fields'
+import { Button, EmptyState, PaymentBadge, SkeletonRows, StatTile } from '../../components/ui'
+import { dayMonth, money, num, shortDate } from '../../lib/format'
+import {
+  useCustomer,
+  useCustomers,
+  useCustomerSummary,
+  useDeleteCustomer,
+  useSales,
+} from '../../lib/queries'
+import { notify } from '../../lib/toast'
 import { CustomerForm } from './CustomerForm'
+
+function initials(name: string): string {
+  const w = name
+    .replace(/[^A-Za-z0-9 ]/g, ' ')
+    .split(/\s+/)
+    .filter((x) => x && x.length > 1 && !/^\d+$/.test(x))
+  return ((w[0]?.[0] ?? '?') + (w[1]?.[0] ?? '')).toUpperCase()
+}
 
 export function CustomersPage() {
   const { company } = useAuth()
   const symbol = company?.currencySymbol ?? 'Rs'
   const navigate = useNavigate()
+  const { id: routeId } = useParams()
+  const confirm = useConfirm()
+  const del = useDeleteCustomer()
+
+  const year = new Date().getFullYear()
   const [q, setQ] = useState('')
+  const [sort, setSort] = useState<'az' | 'top'>('az')
+  const [selectedId, setSelectedId] = useState<string | undefined>(routeId)
   const [formOpen, setFormOpen] = useState(false)
-  const { data, isLoading } = useCustomers(q || undefined)
+  const [editOpen, setEditOpen] = useState(false)
+
+  const list = useCustomers(q || undefined)
+  const rows = useMemo(() => {
+    const arr = [...(list.data ?? [])]
+    arr.sort(sort === 'az' ? (a, b) => a.name.localeCompare(b.name) : (a, b) => b.totalSales - a.totalSales)
+    return arr
+  }, [list.data, sort])
+
+  // Keep a valid selection: from the route, else the first row.
+  useEffect(() => {
+    if (routeId) setSelectedId(routeId)
+  }, [routeId])
+  useEffect(() => {
+    if (!selectedId && rows.length) setSelectedId(rows[0].id)
+  }, [rows, selectedId])
+
+  const detail = useCustomer(selectedId)
+  const summary = useCustomerSummary(selectedId, year)
+  const detailSales = useSales({ customerId: selectedId, year, pageSize: 1000 })
+
+  const select = (cid: string) => {
+    setSelectedId(cid)
+    navigate(`/customers/${cid}`, { replace: true })
+  }
+
+  const onDelete = async () => {
+    if (!detail.data) return
+    const ok = await confirm({
+      title: `Delete ${detail.data.name}?`,
+      message: 'Customers with existing sales cannot be deleted.',
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
+    try {
+      await del.mutateAsync(detail.data.id)
+      notify.success('Customer deleted')
+      setSelectedId(undefined)
+      navigate('/customers', { replace: true })
+    } catch (e) {
+      notify.fromError(e)
+    }
+  }
+
+  const chartData = (summary.data?.months ?? []).map((m) => ({
+    monthName: m.monthName,
+    total: m.sales,
+    transactions: m.transactions,
+  }))
+  const lastSale = detailSales.data?.items[0]?.date
 
   return (
     <Page
       title="Customers"
-      subtitle={data ? `${data.length} customer${data.length === 1 ? '' : 's'}` : undefined}
+      subtitle={list.data ? `${list.data.length} on file` : undefined}
       action={<Button onClick={() => setFormOpen(true)}><Plus size={18} /> New customer</Button>}
     >
-      <label className="input flex items-center gap-2 w-full max-w-md">
-        <Search size={18} className="opacity-60 shrink-0" />
-        <input className="grow" placeholder="Search name or tax ID…" value={q} onChange={(e) => setQ(e.target.value)} />
-      </label>
-
-      {isLoading ? (
-        <SkeletonRows count={8} />
-      ) : data && data.length > 0 ? (
-        <div className="panel overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>{company?.taxIdLabel ?? 'Tax ID'}</th>
-                  <th>City</th>
-                  <th className="text-right">Total sales</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((c) => (
-                  <tr
+      <div className="grid lg:grid-cols-[360px_1fr] gap-4 items-start">
+        {/* List */}
+        <div className="panel p-4 flex flex-col gap-3">
+          <label className="input flex items-center gap-2 w-full">
+            <Search size={18} className="opacity-60 shrink-0" />
+            <input className="grow" placeholder="Search name or tax ID…" value={q} onChange={(e) => setQ(e.target.value)} />
+          </label>
+          <Segmented
+            value={sort}
+            onChange={setSort}
+            size="md"
+            options={[
+              { value: 'az', label: 'A–Z' },
+              { value: 'top', label: 'Top sales' },
+            ]}
+          />
+          <div className="flex flex-col gap-1 max-h-[64vh] overflow-y-auto -mx-1 px-1">
+            {list.isLoading ? (
+              <SkeletonRows count={6} />
+            ) : rows.length === 0 ? (
+              <div className="py-8"><EmptyState icon={Users} title={q ? 'No matches' : 'No customers yet'} /></div>
+            ) : (
+              rows.map((c) => {
+                const active = c.id === selectedId
+                return (
+                  <button
                     key={c.id}
-                    className="hover:bg-base-200 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/customers/${c.id}`)}
+                    onClick={() => select(c.id)}
+                    className={`flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${
+                      active ? 'bg-base-200 ring-1 ring-primary' : 'hover:bg-base-200'
+                    }`}
                   >
-                    <td className="font-medium">{c.name}</td>
-                    <td className="text-secondary">{c.taxId ?? '—'}</td>
-                    <td className="text-secondary">{c.city ?? '—'}</td>
-                    <td className="text-right tabular font-semibold">{money(c.totalSales, symbol)}</td>
-                    <td className="w-8 text-tertiary"><ChevronRight size={16} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    <span className="grid place-items-center w-9 h-9 shrink-0 rounded-full text-[0.78rem] font-semibold"
+                      style={{ background: 'color-mix(in oklab, var(--color-primary) 15%, transparent)', color: 'var(--color-primary)' }}>
+                      {initials(c.name)}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[0.95rem] font-medium truncate">{c.name}</span>
+                      <span className="block footnote text-secondary truncate">
+                        {c.taxId ? `${company?.taxIdLabel ?? 'Tax ID'} ${c.taxId}` : c.city || 'No tax ID'}
+                      </span>
+                    </span>
+                    <span className="tabular text-[0.85rem] shrink-0">{num(c.totalSales)}</span>
+                  </button>
+                )
+              })
+            )}
           </div>
         </div>
-      ) : (
-        <div className="panel">
-          <EmptyState
-            icon={Users}
-            title={q ? 'No matches' : 'No customers yet'}
-            subtitle={q ? 'Try a different search.' : 'Add your first customer to start recording sales.'}
-            action={!q ? <Button onClick={() => setFormOpen(true)}><Plus size={18} /> Add customer</Button> : undefined}
-          />
-        </div>
-      )}
+
+        {/* Detail */}
+        {!detail.data ? (
+          <div className="panel"><SkeletonRows count={5} /></div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="panel p-6 flex flex-col gap-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="title-2">{detail.data.name}</h2>
+                  <p className="subhead text-secondary mt-1 tabular">
+                    {detail.data.taxId ? `${company?.taxIdLabel ?? 'Tax ID'} ${detail.data.taxId}` : 'No tax ID on file'}
+                    {detail.data.city ? ` · ${detail.data.city}` : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setEditOpen(true)}><Pencil size={16} /> Edit</Button>
+                  <Button variant="danger" size="sm" onClick={onDelete} loading={del.isPending}><Trash2 size={16} /></Button>
+                  <Button size="sm" onClick={() => navigate('/sales', { state: { newForCustomerId: detail.data!.id } })}>
+                    <Plus size={16} /> New sale
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <StatTile size="sm" icon={Receipt} label={`${year} total`} value={money(summary.data?.yearSales ?? 0, symbol)} invert />
+                <StatTile size="sm" icon={Wallet} label="Sales" value={String(summary.data?.yearTransactions ?? 0)} />
+                <StatTile size="sm" icon={CalendarDays} label="Last sale" value={lastSale ? dayMonth(lastSale) : '—'} />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="section-header">Sales by month · {year}</span>
+                {summary.isLoading ? (
+                  <div className="skeleton h-[120px] w-full rounded-xl" />
+                ) : (
+                  <MonthBarChart data={chartData} selected={-1} onSelect={() => {}} height={130} />
+                )}
+              </div>
+            </div>
+
+            {/* Sales list */}
+            <div className="panel overflow-hidden">
+              {detailSales.isLoading ? (
+                <div className="p-4"><SkeletonRows count={4} /></div>
+              ) : detailSales.data && detailSales.data.items.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Invoice #</th>
+                        <th className="text-right">Amount</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detailSales.data.items.map((s) => (
+                        <tr key={s.id} className="hover:bg-base-200 cursor-pointer transition-colors" onClick={() => navigate('/sales', { state: { editSaleId: s.id } })}>
+                          <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
+                          <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
+                          <td className="text-right tabular font-semibold">{money(s.amount, symbol)}</td>
+                          <td><PaymentBadge status={s.paymentStatus} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <EmptyState icon={CalendarDays} title="No sales this year" subtitle={`Nothing recorded for ${year}.`} />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {formOpen && <CustomerForm open={formOpen} onClose={() => setFormOpen(false)} />}
+      {editOpen && detail.data && (
+        <CustomerForm open={editOpen} onClose={() => setEditOpen(false)} customer={detail.data} />
+      )}
     </Page>
   )
 }

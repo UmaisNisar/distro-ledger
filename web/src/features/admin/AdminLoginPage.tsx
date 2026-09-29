@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useAdmin } from '../../auth/AdminContext'
-import { TextField } from '../../components/fields'
+import { PasswordField, TextField } from '../../components/fields'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Button } from '../../components/ui'
 import { notify } from '../../lib/toast'
@@ -47,7 +47,7 @@ export function AdminLoginPage() {
         <div className="panel p-6 animate-page">
           <form onSubmit={onSubmit} className="flex flex-col gap-1">
             <TextField label="Username" autoCapitalize="none" autoComplete="username" error={errors.username?.message} {...register('username')} />
-            <TextField label="Password" type="password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
+            <PasswordField label="Password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
             <Button type="submit" block loading={isSubmitting} className="mt-2">Sign in</Button>
           </form>
         </div>

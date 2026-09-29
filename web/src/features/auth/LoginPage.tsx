@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '../../auth/AuthContext'
-import { TextField } from '../../components/fields'
+import { PasswordField, TextField } from '../../components/fields'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Button } from '../../components/ui'
 import { notify } from '../../lib/toast'
@@ -37,7 +37,7 @@ export function LoginPage() {
     <AuthShell title="Welcome back" subtitle="Sign in to your company workspace">
       <form onSubmit={onSubmit} className="flex flex-col gap-1">
         <TextField label="Company handle" placeholder="salah-traders" autoCapitalize="none" autoComplete="username" error={errors.slug?.message} {...register('slug')} />
-        <TextField label="Password" type="password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
+        <PasswordField label="Password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
         <Button type="submit" block loading={isSubmitting} className="mt-2">Sign in</Button>
       </form>
       <p className="subhead text-secondary text-center mt-4">

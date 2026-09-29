@@ -9,7 +9,8 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ChevronsUpDown, Plus, Receipt, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
 import { Segmented } from '../../components/fields'
@@ -18,6 +19,8 @@ import { money, MONTHS, shortDate } from '../../lib/format'
 import { useCustomers, useSales } from '../../lib/queries'
 import type { Sale } from '../../lib/types'
 import { SaleForm } from './SaleForm'
+
+type SalesNav = { openNew?: boolean; editSaleId?: string; month?: number; year?: number; newForCustomerId?: string }
 
 const col = createColumnHelper<Sale>()
 
@@ -34,6 +37,11 @@ export function SalesPage() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Sale | undefined>()
+  const [pendingEditId, setPendingEditId] = useState<string | null>(null)
+  const [presetCustomerId, setPresetCustomerId] = useState<string | undefined>()
+
+  const location = useLocation()
+  const navigate = useNavigate()
 
   const customers = useCustomers()
   const { data, isLoading } = useSales({
@@ -106,6 +114,32 @@ export function SalesPage() {
     setFormOpen(true)
   }
 
+  // Consume navigation intent from other pages (dashboard) exactly once.
+  const consumed = useRef(false)
+  useEffect(() => {
+    if (consumed.current) return
+    consumed.current = true
+    const st = location.state as SalesNav | null
+    if (!st) return
+    if (st.year) setYear(st.year)
+    if (st.month != null) setMonth(st.month)
+    if (st.newForCustomerId) setPresetCustomerId(st.newForCustomerId)
+    if (st.openNew || st.newForCustomerId) openNew()
+    if (st.editSaleId) setPendingEditId(st.editSaleId)
+    navigate(location.pathname, { replace: true, state: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Open a specific sale once its row has loaded.
+  useEffect(() => {
+    if (!pendingEditId || rows.length === 0) return
+    const s = rows.find((r) => r.id === pendingEditId)
+    if (s) {
+      openEdit(s)
+      setPendingEditId(null)
+    }
+  }, [pendingEditId, rows])
+
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i)
   const noCustomers = customers.data && customers.data.length === 0
   const pageIndex = table.getState().pagination.pageIndex
@@ -121,8 +155,25 @@ export function SalesPage() {
         </Button>
       }
     >
-      {/* Toolbar — one wrapping row */}
-      <div className="panel p-3 flex flex-wrap items-center gap-3">
+      {/* Month tabs */}
+      <div className="flex gap-1 p-1 bg-base-200 rounded-xl overflow-x-auto">
+        {[{ v: 0, l: 'All' }, ...MONTHS.map((m, i) => ({ v: i + 1, l: m.slice(0, 3) }))].map((t) => (
+          <button
+            key={t.v}
+            onClick={() => setMonth(t.v)}
+            className={`flex-1 min-w-[52px] px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
+              month === t.v
+                ? 'bg-neutral text-neutral-content'
+                : 'text-base-content/70 hover:bg-base-100'
+            }`}
+          >
+            {t.l}
+          </button>
+        ))}
+      </div>
+
+      {/* Search + year + status */}
+      <div className="flex flex-wrap items-center gap-3">
         <label className="input flex items-center gap-2 flex-1 min-w-[220px]">
           <Search size={18} className="opacity-60 shrink-0" />
           <input
@@ -135,12 +186,6 @@ export function SalesPage() {
         <select className="select w-28" value={year} onChange={(e) => setYear(Number(e.target.value))}>
           {years.map((y) => (
             <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-        <select className="select w-40" value={month} onChange={(e) => setMonth(Number(e.target.value))}>
-          <option value={0}>All months</option>
-          {MONTHS.map((m, i) => (
-            <option key={m} value={i + 1}>{m}</option>
           ))}
         </select>
         <Segmented
@@ -239,7 +284,16 @@ export function SalesPage() {
       )}
 
       {formOpen && (
-        <SaleForm open={formOpen} onClose={() => setFormOpen(false)} sale={editing} customers={customers.data ?? []} />
+        <SaleForm
+          open={formOpen}
+          onClose={() => {
+            setFormOpen(false)
+            setPresetCustomerId(undefined)
+          }}
+          sale={editing}
+          customers={customers.data ?? []}
+          presetCustomerId={presetCustomerId}
+        />
       )}
     </Page>
   )

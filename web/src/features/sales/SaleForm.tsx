@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
-import { SelectField, TextField, TextareaField } from '../../components/fields'
+import { useAuth } from '../../auth/AuthContext'
+import { Combobox, MoneyField, SelectField, TextField, TextareaField } from '../../components/fields'
 import { Sheet } from '../../components/Sheet'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { Button } from '../../components/ui'
@@ -35,19 +36,24 @@ export function SaleForm({
   onClose,
   sale,
   customers,
+  presetCustomerId,
 }: {
   open: boolean
   onClose: () => void
   sale?: Sale
   customers: Customer[]
+  presetCustomerId?: string
 }) {
   const save = useSaveSale()
   const del = useDeleteSale()
   const navigate = useNavigate()
   const confirm = useConfirm()
+  const { company } = useAuth()
+  const symbol = company?.currencySymbol ?? 'Rs'
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormInput, unknown, FormOutput>({
@@ -63,7 +69,7 @@ export function SaleForm({
         }
       : {
           date: inputDate(new Date().toISOString()),
-          customerId: '',
+          customerId: presetCustomerId ?? '',
           amount: undefined,
           amountPaid: 0,
           paymentMethod: '',
@@ -134,31 +140,34 @@ export function SaleForm({
         </div>
       }
     >
-      <SelectField label="Customer" error={errors.customerId?.message} {...register('customerId')}>
-        <option value="">Select a customer…</option>
-        {customers.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </SelectField>
+      <Controller
+        name="customerId"
+        control={control}
+        render={({ field }) => (
+          <Combobox
+            label="Customer"
+            value={field.value ?? ''}
+            onChange={field.onChange}
+            options={customers.map((c) => ({ value: c.id, label: c.name, hint: c.taxId ?? undefined }))}
+            placeholder="Select a customer…"
+            error={errors.customerId?.message}
+            emptyText="No customers match"
+          />
+        )}
+      />
       <TextField label="Date" type="date" error={errors.date?.message} {...register('date')} />
       <div className="grid grid-cols-2 gap-2">
-        <TextField
+        <MoneyField
           label="Amount"
-          type="number"
-          inputMode="decimal"
-          step="0.01"
-          placeholder="0.00"
+          symbol={symbol}
+          placeholder="0"
           error={errors.amount?.message}
           {...register('amount')}
         />
-        <TextField
+        <MoneyField
           label="Amount paid"
-          type="number"
-          inputMode="decimal"
-          step="0.01"
-          placeholder="0.00"
+          symbol={symbol}
+          placeholder="0"
           error={errors.amountPaid?.message}
           {...register('amountPaid')}
         />

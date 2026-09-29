@@ -31,7 +31,7 @@ export function SalesPage() {
   const now = new Date()
 
   const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(0)
+  const [month, setMonth] = useState(now.getMonth() + 1) // default to current month
   const [status, setStatus] = useState('')
   const [globalFilter, setGlobalFilter] = useState('')
   const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: true }])

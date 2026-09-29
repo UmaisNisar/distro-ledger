@@ -32,11 +32,11 @@ export function AppLayout() {
         </div>
       </div>
       <nav className="flex flex-col gap-1 px-3 py-3 flex-1 overflow-y-auto">
-        {NAV.map((n) => (
+        {NAV.filter((n) => n.to !== '/settings').map((n) => (
           <NavLink key={n.to} to={n.to} end={n.end} onClick={() => setDrawerOpen(false)}>
             {({ isActive }) => (
               <span
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
                   isActive
                     ? 'bg-white/[0.09] text-white font-semibold'
                     : 'text-[#B9C3BD] hover:bg-white/[0.05] hover:text-white'
@@ -50,25 +50,41 @@ export function AppLayout() {
         ))}
       </nav>
       <div className="p-3 flex flex-col gap-1 border-t border-white/10">
-        <ThemeToggle />
-        <div className="dropdown dropdown-top w-full">
-          <div tabIndex={0} role="button" className="btn btn-ghost justify-start gap-3 w-full h-auto py-2 hover:bg-white/[0.06]">
-            <span className="grid place-items-center w-9 h-9 rounded-full bg-white/10 font-bold shrink-0">
-              {initial}
-            </span>
-            <span className="text-left min-w-0 flex-1">
-              <span className="block font-semibold truncate leading-tight">{company?.name}</span>
-              <span className="block text-[0.72rem] text-[#B9C3BD] truncate">@{company?.slug}</span>
-            </span>
-          </div>
-          <ul className="dropdown-content menu bg-base-100 text-base-content rounded-box shadow-lg border border-base-300 w-full mb-2 z-50">
-            <li>
-              <button onClick={logout} className="text-error">
-                <LogOut size={16} /> Sign out
-              </button>
-            </li>
-          </ul>
+        {/* Company identity */}
+        <div className="flex items-center gap-3 px-3 py-2 mb-1">
+          <span className="grid place-items-center w-9 h-9 rounded-full bg-white/10 font-bold shrink-0">
+            {initial}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold truncate leading-tight">{company?.name}</span>
+            <span className="block text-[0.72rem] text-[#B9C3BD] truncate">@{company?.slug}</span>
+          </span>
         </div>
+        {/* Settings */}
+        <NavLink to="/settings" onClick={() => setDrawerOpen(false)}>
+          {({ isActive }) => (
+            <span
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
+                isActive
+                  ? 'bg-white/[0.09] text-white font-semibold'
+                  : 'text-[#B9C3BD] hover:bg-white/[0.05] hover:text-white'
+              }`}
+            >
+              <Settings size={20} className="shrink-0" />
+              <span className="text-[0.95rem]">Settings</span>
+            </span>
+          )}
+        </NavLink>
+        {/* Theme toggle */}
+        <ThemeToggle />
+        {/* Sign out */}
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#B9C3BD] hover:bg-white/[0.05] hover:text-white transition-all duration-150"
+        >
+          <LogOut size={20} className="shrink-0" />
+          <span className="text-[0.95rem]">Sign out</span>
+        </button>
       </div>
     </aside>
   )

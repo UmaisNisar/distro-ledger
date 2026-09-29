@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './api'
 import type {
   Company,
@@ -18,6 +18,7 @@ export function useOverview() {
   return useQuery({
     queryKey: ['overview'],
     queryFn: async () => (await api.get<Overview>('/api/dashboard/overview')).data,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -25,6 +26,7 @@ export function useMonthlySummary(year: number) {
   return useQuery({
     queryKey: ['summary', year],
     queryFn: async () => (await api.get<MonthlySummary>(`/api/dashboard/summary?year=${year}`)).data,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -51,6 +53,7 @@ export function useSales(filter: SalesFilter) {
   return useQuery({
     queryKey: ['sales', filter],
     queryFn: async () => (await api.get<Paged<Sale>>(`/api/sales?${params}`)).data,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -95,6 +98,7 @@ export function useCustomers(q?: string) {
     queryKey: ['customers', q ?? ''],
     queryFn: async () =>
       (await api.get<Customer[]>(`/api/customers${q ? `?q=${encodeURIComponent(q)}` : ''}`)).data,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -103,6 +107,7 @@ export function useCustomer(id: string | undefined) {
     queryKey: ['customer', id],
     enabled: !!id,
     queryFn: async () => (await api.get<Customer>(`/api/customers/${id}`)).data,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -112,6 +117,7 @@ export function useCustomerSummary(id: string | undefined, year: number) {
     enabled: !!id,
     queryFn: async () =>
       (await api.get<CustomerSummary>(`/api/customers/${id}/summary?year=${year}`)).data,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -142,6 +148,7 @@ export function useReceivables() {
   return useQuery({
     queryKey: ['receivables'],
     queryFn: async () => (await api.get<Receivables>('/api/receivables')).data,
+    placeholderData: keepPreviousData,
   })
 }
 

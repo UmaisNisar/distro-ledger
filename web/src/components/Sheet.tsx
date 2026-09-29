@@ -36,7 +36,7 @@ export function Sheet({
             <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto px-5 py-4 flex flex-col gap-1">{children}</div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 flex flex-col gap-1">{children}</div>
         {footer && (
           <div className="px-5 py-4 border-t border-base-300 bg-base-100 sticky bottom-0">{footer}</div>
         )}

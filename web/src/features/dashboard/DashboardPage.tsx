@@ -37,12 +37,12 @@ export function DashboardPage() {
 
       <div className="grid lg:grid-cols-3 gap-4">
         {/* Chart */}
-        <div className="panel p-5 lg:col-span-2">
+        <div className="panel p-5 lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h2 className="headline">Monthly sales</h2>
             <span className="footnote text-secondary">{new Date().getFullYear()}</span>
           </div>
-          <div style={{ height: 240 }} className="text-base-content">
+          <div className="text-base-content flex-1 min-h-[240px]">
             {data && (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.trend} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>

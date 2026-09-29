@@ -45,7 +45,10 @@ export function applyMode(mode: Mode) {
 /** Call once before React renders so there's no flash of the wrong theme. */
 export function initTheme() {
   applyMode(getMode())
+  applyAccent(DEFAULT_ACCENT) // consistent branding before a tenant loads
 }
+
+export const DEFAULT_ACCENT = '#2563EB'
 
 export const ACCENT_PRESETS = [
   '#2563EB', // blue

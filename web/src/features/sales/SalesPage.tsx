@@ -49,13 +49,16 @@ export function SalesPage() {
     () => [
       col.accessor('invoiceNumber', {
         header: 'Invoice #',
-        cell: (c) => <span className="font-medium tabular">{c.getValue()}</span>,
+        cell: (c) => <span className="font-medium tabular whitespace-nowrap">{c.getValue()}</span>,
       }),
       col.accessor('date', {
         header: 'Date',
         cell: (c) => <span className="whitespace-nowrap">{shortDate(c.getValue())}</span>,
       }),
-      col.accessor('customerName', { header: 'Customer' }),
+      col.accessor('customerName', {
+        header: 'Customer',
+        cell: (c) => <span className="whitespace-nowrap">{c.getValue()}</span>,
+      }),
       col.accessor('amount', {
         header: 'Amount',
         cell: (c) => <span className="tabular">{money(c.getValue(), symbol)}</span>,
@@ -118,9 +121,9 @@ export function SalesPage() {
         </Button>
       }
     >
-      {/* Toolbar */}
-      <div className="panel p-3 flex flex-col lg:flex-row lg:items-center gap-3">
-        <label className="input flex items-center gap-2 flex-1 min-w-0">
+      {/* Toolbar — one wrapping row */}
+      <div className="panel p-3 flex flex-wrap items-center gap-3">
+        <label className="input flex items-center gap-2 flex-1 min-w-[220px]">
           <Search size={18} className="opacity-60 shrink-0" />
           <input
             className="grow"
@@ -129,29 +132,28 @@ export function SalesPage() {
             onChange={(e) => setGlobalFilter(e.target.value)}
           />
         </label>
-        <div className="flex items-center gap-2 flex-wrap">
-          <select className="select select-sm" value={year} onChange={(e) => setYear(Number(e.target.value))}>
-            {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-          <select className="select select-sm" value={month} onChange={(e) => setMonth(Number(e.target.value))}>
-            <option value={0}>All months</option>
-            {MONTHS.map((m, i) => (
-              <option key={m} value={i + 1}>{m}</option>
-            ))}
-          </select>
-          <Segmented
-            value={status}
-            onChange={setStatus}
-            options={[
-              { value: '', label: 'All' },
-              { value: 'Unpaid', label: 'Unpaid' },
-              { value: 'Partial', label: 'Partial' },
-              { value: 'Paid', label: 'Paid' },
-            ]}
-          />
-        </div>
+        <select className="select w-28" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+          {years.map((y) => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+        <select className="select w-40" value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+          <option value={0}>All months</option>
+          {MONTHS.map((m, i) => (
+            <option key={m} value={i + 1}>{m}</option>
+          ))}
+        </select>
+        <Segmented
+          value={status}
+          onChange={setStatus}
+          size="md"
+          options={[
+            { value: '', label: 'All' },
+            { value: 'Unpaid', label: 'Unpaid' },
+            { value: 'Partial', label: 'Partial' },
+            { value: 'Paid', label: 'Paid' },
+          ]}
+        />
       </div>
 
       {/* Grid */}

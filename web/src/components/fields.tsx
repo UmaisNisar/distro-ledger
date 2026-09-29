@@ -1,9 +1,9 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 
-function Wrap({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+function Wrap({ id, label, error, children }: { id: string; label: string; error?: string; children: ReactNode }) {
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium mb-1.5 text-secondary">{label}</label>
+      <label htmlFor={id} className="block text-sm font-medium mb-1.5 text-secondary">{label}</label>
       {children}
       {/* reserved space: errors never shift layout */}
       <div className="min-h-[18px] pt-1 text-xs text-error leading-tight">{error ?? ''}</div>
@@ -14,10 +14,12 @@ function Wrap({ label, error, children }: { label: string; error?: string; child
 export const TextField = forwardRef<
   HTMLInputElement,
   InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }
->(function TextField({ label, error, className = '', ...rest }, ref) {
+>(function TextField({ label, error, className = '', id, ...rest }, ref) {
+  const autoId = useId()
+  const fieldId = id ?? autoId
   return (
-    <Wrap label={label} error={error}>
-      <input ref={ref} className={`input w-full ${error ? 'input-error' : ''} ${className}`} {...rest} />
+    <Wrap id={fieldId} label={label} error={error}>
+      <input id={fieldId} ref={ref} className={`input w-full ${error ? 'input-error' : ''} ${className}`} {...rest} />
     </Wrap>
   )
 })
@@ -25,10 +27,12 @@ export const TextField = forwardRef<
 export const TextareaField = forwardRef<
   HTMLTextAreaElement,
   TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string }
->(function TextareaField({ label, error, className = '', ...rest }, ref) {
+>(function TextareaField({ label, error, className = '', id, ...rest }, ref) {
+  const autoId = useId()
+  const fieldId = id ?? autoId
   return (
-    <Wrap label={label} error={error}>
-      <textarea ref={ref} className={`textarea w-full min-h-24 ${error ? 'textarea-error' : ''} ${className}`} {...rest} />
+    <Wrap id={fieldId} label={label} error={error}>
+      <textarea id={fieldId} ref={ref} className={`textarea w-full min-h-24 ${error ? 'textarea-error' : ''} ${className}`} {...rest} />
     </Wrap>
   )
 })
@@ -36,10 +40,12 @@ export const TextareaField = forwardRef<
 export const SelectField = forwardRef<
   HTMLSelectElement,
   SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; children: ReactNode }
->(function SelectField({ label, error, className = '', children, ...rest }, ref) {
+>(function SelectField({ label, error, className = '', children, id, ...rest }, ref) {
+  const autoId = useId()
+  const fieldId = id ?? autoId
   return (
-    <Wrap label={label} error={error}>
-      <select ref={ref} className={`select w-full ${error ? 'select-error' : ''} ${className}`} {...rest}>
+    <Wrap id={fieldId} label={label} error={error}>
+      <select id={fieldId} ref={ref} className={`select w-full ${error ? 'select-error' : ''} ${className}`} {...rest}>
         {children}
       </select>
     </Wrap>

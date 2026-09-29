@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="DistroLedger.Api/DistroLedger.Api.csproj" />
+  <Project Path="DistroLedger.Domain/DistroLedger.Domain.csproj" />
+  <Project Path="DistroLedger.Infrastructure/DistroLedger.Infrastructure.csproj" />
+  <Project Path="DistroLedger.Tests/DistroLedger.Tests.csproj" />
+</Solution>

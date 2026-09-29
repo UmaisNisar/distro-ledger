@@ -1,0 +1,60 @@
+# Production stack for a single VM (e.g. Oracle Cloud Always-Free).
+# Caddy terminates HTTPS (auto Let's Encrypt) and proxies to the web container,
+# which serves the SPA and forwards /api to the API container. Postgres stays internal.
+#
+#   cp .env.example .env      # set DOMAIN, JWT_SECRET, POSTGRES_PASSWORD
+#   docker compose -f docker-compose.prod.yml up -d --build
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: distroledger
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=distroledger;Username=postgres;Password=${POSTGRES_PASSWORD}"
+      Jwt__Secret: ${JWT_SECRET:?set JWT_SECRET in .env}
+      AllowedOrigins: "https://${DOMAIN}"
+      ASPNETCORE_ENVIRONMENT: Production
+      PORT: "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  dbdata:
+  caddy_data:
+  caddy_config:

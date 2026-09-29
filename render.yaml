@@ -1,0 +1,20 @@
+# Render Blueprint — deploys the API as a free Docker web service.
+# The database is Neon (created separately, free tier); paste its connection string
+# into DATABASE_URL below or set it in the Render dashboard.
+services:
+  - type: web
+    name: distroledger-api
+    runtime: docker
+    plan: free
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ConnectionStrings__Postgres
+        sync: false # set to your Neon connection string (Npgsql format)
+      - key: Jwt__Secret
+        generateValue: true
+      - key: AllowedOrigins
+        sync: false # set to your web origin, e.g. https://distroledger.vercel.app
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production

@@ -1,0 +1,42 @@
+# Local full stack: Postgres + .NET API + React (nginx). Run: `docker compose up --build`
+# Then open http://localhost:8081
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: distroledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./server
+    environment:
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=distroledger;Username=postgres;Password=postgres"
+      Jwt__Secret: "${JWT_SECRET:-dev-only-insecure-secret-change-me-please-32bytes}"
+      AllowedOrigins: "http://localhost:8081"
+      ASPNETCORE_ENVIRONMENT: Production
+      PORT: "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5080:8080"
+
+  web:
+    build: ./web
+    ports:
+      - "8081:80"
+    depends_on:
+      - api
+
+volumes:
+  dbdata:

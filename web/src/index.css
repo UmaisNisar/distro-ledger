@@ -1,0 +1,355 @@
+@import "tailwindcss";
+
+/* Map Tailwind's accent color onto a runtime CSS variable the ThemeProvider sets,
+   so one tenant color re-themes every `accent` utility. */
+@theme {
+  --color-accent: var(--accent);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Segoe UI", Roboto, Helvetica, Arial, system-ui, sans-serif;
+}
+
+/* ---------- iOS system palette (light) ---------- */
+:root {
+  --accent: #0a84ff;
+  --accent-contrast: #ffffff;
+
+  --bg-grouped: #f2f2f7;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+
+  --label: #1c1c1e;
+  --label-secondary: rgba(60, 60, 67, 0.6);
+  --label-tertiary: rgba(60, 60, 67, 0.3);
+
+  --separator: rgba(60, 60, 67, 0.29);
+  --fill: rgba(120, 120, 128, 0.12);
+  --fill-strong: rgba(120, 120, 128, 0.2);
+
+  --danger: #ff3b30;
+  --success: #34c759;
+  --warning: #ff9500;
+
+  --radius-card: 16px;
+  --radius-group: 12px;
+  --radius-control: 10px;
+
+  color-scheme: light;
+}
+
+/* ---------- Dark ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-grouped: #000000;
+    --bg-surface: #1c1c1e;
+    --bg-elevated: #2c2c2e;
+
+    --label: #ffffff;
+    --label-secondary: rgba(235, 235, 245, 0.6);
+    --label-tertiary: rgba(235, 235, 245, 0.3);
+
+    --separator: rgba(84, 84, 88, 0.6);
+    --fill: rgba(118, 118, 128, 0.24);
+    --fill-strong: rgba(118, 118, 128, 0.36);
+
+    --danger: #ff453a;
+    --success: #30d158;
+    --warning: #ff9f0a;
+
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg-grouped: #000000;
+  --bg-surface: #1c1c1e;
+  --bg-elevated: #2c2c2e;
+  --label: #ffffff;
+  --label-secondary: rgba(235, 235, 245, 0.6);
+  --label-tertiary: rgba(235, 235, 245, 0.3);
+  --separator: rgba(84, 84, 88, 0.6);
+  --fill: rgba(118, 118, 128, 0.24);
+  --fill-strong: rgba(118, 118, 128, 0.36);
+  --danger: #ff453a;
+  --success: #30d158;
+  --warning: #ff9f0a;
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-grouped);
+  color: var(--label);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Typography ---------- */
+.large-title {
+  font-size: 34px;
+  line-height: 41px;
+  font-weight: 700;
+  letter-spacing: 0.011em;
+}
+.title-2 {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+}
+.headline {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.subhead {
+  font-size: 15px;
+  line-height: 20px;
+}
+.footnote {
+  font-size: 13px;
+  line-height: 18px;
+}
+.text-secondary {
+  color: var(--label-secondary);
+}
+.text-tertiary {
+  color: var(--label-tertiary);
+}
+.section-header {
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--label-secondary);
+  padding: 0 16px 6px;
+}
+
+/* ---------- Surfaces ---------- */
+@layer components {
+  .card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 10px rgba(0, 0, 0, 0.03);
+  }
+
+  /* Inset grouped list container */
+  .inset-group {
+    background: var(--bg-surface);
+    border-radius: var(--radius-group);
+    overflow: hidden;
+  }
+
+  .list-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 11px 16px;
+    background: var(--bg-surface);
+  }
+  .list-row + .list-row {
+    border-top: 0.5px solid var(--separator);
+  }
+  .list-row-tap {
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  .list-row-tap:active {
+    background: var(--fill);
+  }
+
+  .hairline {
+    border-bottom: 0.5px solid var(--separator);
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: var(--radius-control);
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.12s ease, background 0.12s ease, transform 0.05s ease;
+    user-select: none;
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .btn-secondary {
+    background: var(--fill);
+    color: var(--accent);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--accent);
+    min-height: 36px;
+    padding: 0 8px;
+  }
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
+  .btn-block {
+    width: 100%;
+  }
+
+  /* ---------- Segmented control ---------- */
+  .seg {
+    display: inline-flex;
+    background: var(--fill);
+    border-radius: 9px;
+    padding: 2px;
+    gap: 2px;
+    width: 100%;
+  }
+  .seg-item {
+    flex: 1;
+    text-align: center;
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--label);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .seg-item.active {
+    background: var(--bg-elevated);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  }
+
+  /* ---------- Fields ---------- */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--label-secondary);
+    padding-left: 2px;
+  }
+  .field-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: var(--bg-surface);
+    color: var(--label);
+    border: 0.5px solid var(--separator);
+    border-radius: var(--radius-control);
+    font-size: 17px;
+    outline: none;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  textarea.field-input {
+    height: auto;
+    min-height: 88px;
+    padding: 12px 14px;
+    resize: vertical;
+  }
+  .field-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .field-input::placeholder {
+    color: var(--label-tertiary);
+  }
+  .field-error {
+    color: var(--danger);
+    font-size: 13px;
+    min-height: 18px; /* reserve space: no layout shift when errors appear */
+    padding-left: 2px;
+  }
+
+  /* ---------- Badges ---------- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-paid {
+    background: color-mix(in srgb, var(--success) 16%, transparent);
+    color: var(--success);
+  }
+  .badge-unpaid {
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+  }
+  .badge-partial {
+    background: color-mix(in srgb, var(--warning) 18%, transparent);
+    color: var(--warning);
+  }
+
+  /* ---------- Skeleton ---------- */
+  .skeleton {
+    background: linear-gradient(
+      100deg,
+      var(--fill) 30%,
+      var(--fill-strong) 50%,
+      var(--fill) 70%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.3s ease-in-out infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+}
+
+/* ---------- Scrollbars (subtle) ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fill-strong);
+  border-radius: 999px;
+}
+
+/* ---------- Print (invoice) ---------- */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}

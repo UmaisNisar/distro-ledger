@@ -1,0 +1,6 @@
+# Auto-HTTPS via Let's Encrypt. Caddy serves the whole app from the web container,
+# which already forwards /api to the API. Set DOMAIN in .env.
+{$DOMAIN} {
+	encode gzip zstd
+	reverse_proxy web:80
+}

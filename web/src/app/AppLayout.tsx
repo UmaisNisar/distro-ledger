@@ -1,15 +1,15 @@
-import { LayoutDashboard, LogOut, Menu, Receipt, Settings, Users, Wallet } from 'lucide-react'
+import { LayoutDashboard, LogOut, Receipt, Settings, Users, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ThemeToggle } from '../components/ThemeToggle'
 
 const NAV = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/sales', label: 'Sales', icon: Receipt, end: false },
-  { to: '/customers', label: 'Customers', icon: Users, end: false },
-  { to: '/receivables', label: 'Receivables', icon: Wallet, end: false },
-  { to: '/settings', label: 'Settings', icon: Settings, end: false },
+  { to: '/', label: 'Dashboard', short: 'Home', icon: LayoutDashboard, end: true },
+  { to: '/sales', label: 'Sales', short: 'Sales', icon: Receipt, end: false },
+  { to: '/customers', label: 'Customers', short: 'Clients', icon: Users, end: false },
+  { to: '/receivables', label: 'Receivables', short: 'Owed', icon: Wallet, end: false },
+  { to: '/settings', label: 'Settings', short: 'Settings', icon: Settings, end: false },
 ]
 
 export function AppLayout() {
@@ -84,21 +84,47 @@ export function AppLayout() {
       />
       <div className="drawer-content flex flex-col min-h-screen">
         {/* Mobile top bar */}
-        <div className="lg:hidden sticky top-0 z-30 h-14 flex items-center gap-2 px-3 bg-base-100/90 backdrop-blur border-b border-base-300">
-          <label htmlFor="nav-drawer" className="btn btn-ghost btn-square btn-sm">
-            <Menu size={22} />
-          </label>
+        <div className="lg:hidden sticky top-0 z-30 h-14 flex items-center gap-2 px-4 bg-base-100/90 backdrop-blur border-b border-base-300">
+          <span className="grid place-items-center w-8 h-8 rounded-lg bg-primary text-primary-content font-extrabold text-sm shrink-0"
+            style={{ fontFamily: 'var(--font-display)' }}>
+            {initial}
+          </span>
           <span className="font-bold flex-1 truncate" style={{ fontFamily: 'var(--font-display)' }}>
             {company?.name ?? 'DistroLedger'}
           </span>
           <ThemeToggle compact />
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={logout} aria-label="Sign out">
+            <LogOut size={18} />
+          </button>
         </div>
 
         <main className="flex-1 w-full">
-          <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10 py-6 lg:py-8">
+          <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 pb-24 lg:pb-8">
             <Outlet />
           </div>
         </main>
+
+        {/* Mobile bottom tab bar */}
+        <nav
+          aria-label="Primary"
+          className="lg:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 bg-base-100/95 backdrop-blur border-t border-base-300"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          {NAV.map((n) => (
+            <NavLink key={n.to} to={n.to} end={n.end} className="min-w-0">
+              {({ isActive }) => (
+                <span
+                  className={`flex flex-col items-center justify-center gap-1 h-16 text-[0.66rem] font-semibold transition-colors ${
+                    isActive ? 'text-primary' : 'text-secondary'
+                  }`}
+                >
+                  <n.icon size={21} className="shrink-0" />
+                  {n.short}
+                </span>
+              )}
+            </NavLink>
+          ))}
+        </nav>
       </div>
 
       <div className="drawer-side z-40">

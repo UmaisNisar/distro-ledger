@@ -7,6 +7,7 @@ import { MonthBarChart } from '../../components/MonthBarChart'
 import { Page } from '../../components/Page'
 import { Segmented } from '../../components/fields'
 import { Button, EmptyState, PaymentBadge, SkeletonRows, StatTile } from '../../components/ui'
+import { SaleRowCard } from '../../components/rows'
 import { dayMonth, money, num, shortDate } from '../../lib/format'
 import {
   useCustomer,
@@ -113,7 +114,7 @@ export function CustomersPage() {
               { value: 'top', label: 'Top sales' },
             ]}
           />
-          <div className="flex flex-col gap-1 max-h-[64vh] overflow-y-auto -mx-1 px-1">
+          <div className="flex flex-col gap-1 lg:max-h-[64vh] lg:overflow-y-auto -mx-1 px-1">
             {list.isLoading ? (
               <SkeletonRows count={6} />
             ) : rows.length === 0 ? (
@@ -170,7 +171,7 @@ export function CustomersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <StatTile size="sm" icon={Receipt} label={`${year} total`} value={money(summary.data?.yearSales ?? 0, symbol)} invert />
                 <StatTile size="sm" icon={Wallet} label="Sales" value={String(summary.data?.yearTransactions ?? 0)} />
                 <StatTile size="sm" icon={CalendarDays} label="Last sale" value={lastSale ? dayMonth(lastSale) : '—'} />
@@ -191,28 +192,37 @@ export function CustomersPage() {
               {detailSales.isLoading ? (
                 <div className="p-4"><SkeletonRows count={4} /></div>
               ) : detailSales.data && detailSales.data.items.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Invoice #</th>
-                        <th className="text-right">Amount</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {detailSales.data.items.map((s) => (
-                        <tr key={s.id} className="hover:bg-base-200 cursor-pointer transition-colors" onClick={() => navigate('/sales', { state: { editSaleId: s.id } })}>
-                          <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
-                          <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
-                          <td className="text-right tabular font-semibold">{money(s.amount, symbol)}</td>
-                          <td><PaymentBadge status={s.paymentStatus} /></td>
+                <>
+                  {/* Mobile: card rows */}
+                  <div className="md:hidden">
+                    {detailSales.data.items.map((s) => (
+                      <SaleRowCard key={s.id} sale={s} symbol={symbol} onClick={() => navigate('/sales', { state: { editSaleId: s.id } })} />
+                    ))}
+                  </div>
+                  {/* Desktop: table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Invoice #</th>
+                          <th className="text-right">Amount</th>
+                          <th>Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {detailSales.data.items.map((s) => (
+                          <tr key={s.id} className="hover:bg-base-200 cursor-pointer transition-colors" onClick={() => navigate('/sales', { state: { editSaleId: s.id } })}>
+                            <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
+                            <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
+                            <td className="text-right tabular font-semibold">{money(s.amount, symbol)}</td>
+                            <td><PaymentBadge status={s.paymentStatus} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               ) : (
                 <EmptyState icon={CalendarDays} title="No sales this year" subtitle={`Nothing recorded for ${year}.`} />
               )}

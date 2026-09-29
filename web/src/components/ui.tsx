@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import type { LucideIcon } from 'lucide-react'
+import { ArrowRight, type LucideIcon } from 'lucide-react'
 import type { PaymentStatus } from '../lib/types'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'soft'
@@ -36,6 +36,25 @@ export function Button({
     >
       {loading && <span className="loading loading-spinner loading-sm" />}
       {children}
+    </button>
+  )
+}
+
+/** Inline text link that clearly reads as clickable (underline on hover + arrow). */
+export function LinkAction({
+  children,
+  onClick,
+}: {
+  children: ReactNode
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="group inline-flex items-center gap-1 footnote font-semibold text-primary cursor-pointer hover:underline underline-offset-4 decoration-2"
+    >
+      {children}
+      <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
     </button>
   )
 }

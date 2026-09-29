@@ -31,7 +31,34 @@ export function ReceivablesPage() {
             />
           </div>
 
-          <div className="panel overflow-hidden">
+          {/* Mobile: card rows */}
+          <div className="panel overflow-hidden md:hidden">
+            {data.customers.map((c) => (
+              <button
+                key={c.customerId}
+                onClick={() => navigate(`/customers/${c.customerId}`)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left border-b border-base-200 last:border-0 hover:bg-base-200 transition-colors"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[0.95rem] font-medium truncate">{c.customerName}</span>
+                  <span className="block footnote text-secondary">
+                    {c.openInvoices} open{c.oldestDate ? ` · oldest ${shortDate(c.oldestDate)}` : ''}
+                  </span>
+                </span>
+                <span className="text-right shrink-0">
+                  <span className="block tabular font-bold">{money(c.outstanding, symbol)}</span>
+                  {c.days90Plus > 0 && (
+                    <span className="block footnote" style={{ color: 'var(--color-error)' }}>
+                      {money(c.days90Plus, symbol)} over 90d
+                    </span>
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop: aging table */}
+          <div className="panel overflow-hidden hidden md:block">
             <div className="overflow-x-auto">
               <table className="table">
                 <thead>

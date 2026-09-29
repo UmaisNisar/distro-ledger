@@ -15,6 +15,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
 import { Segmented } from '../../components/fields'
 import { Button, EmptyState, PaymentBadge, SkeletonRows } from '../../components/ui'
+import { SaleRowCard } from '../../components/rows'
 import { money, MONTHS, shortDate } from '../../lib/format'
 import { useCustomers, useSales } from '../../lib/queries'
 import type { Sale } from '../../lib/types'
@@ -156,7 +157,7 @@ export function SalesPage() {
       }
     >
       {/* Month tabs */}
-      <div className="flex gap-1 p-1 bg-base-200 rounded-xl overflow-x-auto">
+      <div className="flex gap-1 p-1 bg-base-200 rounded-xl overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {[{ v: 0, l: 'All' }, ...MONTHS.map((m, i) => ({ v: i + 1, l: m.slice(0, 3) }))].map((t) => (
           <button
             key={t.v}
@@ -219,7 +220,14 @@ export function SalesPage() {
         </div>
       ) : (
         <div className="panel overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile: card rows (no horizontal scroll) */}
+          <div className="lg:hidden">
+            {table.getRowModel().rows.map((r) => (
+              <SaleRowCard key={r.id} sale={r.original} symbol={symbol} onClick={() => openEdit(r.original)} />
+            ))}
+          </div>
+          {/* Desktop: full table */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="table">
               <thead>
                 {table.getHeaderGroups().map((hg) => (

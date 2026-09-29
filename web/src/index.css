@@ -291,6 +291,14 @@ body {
   box-shadow: none !important;
 }
 
+/* DaisyUI draws a hard outline on an OPEN native select (:open state) — remove it;
+   the green focus ring above already signals focus. */
+.select:open,
+.input:open,
+.select:focus:open {
+  outline: none !important;
+}
+
 /* Hide the browser's native password reveal/clear (Edge/IE) — we render our own eye. */
 input::-ms-reveal,
 input::-ms-clear {

@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { MonthBarChart } from '../../components/MonthBarChart'
 import { Page } from '../../components/Page'
-import { Button, EmptyState, PaymentBadge, SkeletonRows, StatTile } from '../../components/ui'
+import { Button, EmptyState, LinkAction, PaymentBadge, SkeletonRows, StatTile } from '../../components/ui'
+import { SaleRowCard } from '../../components/rows'
 import { money, moneyCompact, num, shortDate } from '../../lib/format'
 import { useCustomers, useOverview, useSales } from '../../lib/queries'
 
@@ -105,7 +106,7 @@ export function DashboardPage() {
         <div className="panel p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="title-2">Top customers</h2>
-            <button className="footnote font-semibold text-primary" onClick={() => navigate('/customers')}>All customers</button>
+            <LinkAction onClick={() => navigate('/customers')}>All customers</LinkAction>
           </div>
           {customers.isLoading ? (
             <SkeletonRows count={5} />
@@ -133,35 +134,44 @@ export function DashboardPage() {
       <div className="panel overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4">
           <h2 className="title-2">Latest sales</h2>
-          <button className="footnote font-semibold text-primary" onClick={() => navigate('/sales')}>Open ledger</button>
+          <LinkAction onClick={() => navigate('/sales')}>Open ledger</LinkAction>
         </div>
         {recent.isLoading ? (
           <div className="px-4 pb-4"><SkeletonRows count={5} /></div>
         ) : recent.data && recent.data.items.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>Invoice #</th>
-                  <th className="text-right">Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recent.data.items.map((s) => (
-                  <tr key={s.id} className="hover:bg-base-200 cursor-pointer transition-colors" onClick={() => openSale(s.id)}>
-                    <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
-                    <td className="font-medium">{s.customerName}</td>
-                    <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
-                    <td className="text-right tabular font-semibold">{money(s.amount, symbol)}</td>
-                    <td><PaymentBadge status={s.paymentStatus} /></td>
+          <>
+            {/* Mobile: card rows */}
+            <div className="md:hidden">
+              {recent.data.items.map((s) => (
+                <SaleRowCard key={s.id} sale={s} symbol={symbol} onClick={() => openSale(s.id)} />
+              ))}
+            </div>
+            {/* Desktop: table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Invoice #</th>
+                    <th className="text-right">Amount</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {recent.data.items.map((s) => (
+                    <tr key={s.id} className="hover:bg-base-200 cursor-pointer transition-colors" onClick={() => openSale(s.id)}>
+                      <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
+                      <td className="font-medium">{s.customerName}</td>
+                      <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
+                      <td className="text-right tabular font-semibold">{money(s.amount, symbol)}</td>
+                      <td><PaymentBadge status={s.paymentStatus} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <EmptyState icon={TrendingUp} title="No sales yet" subtitle="Add your first sale to see it here." />
         )}

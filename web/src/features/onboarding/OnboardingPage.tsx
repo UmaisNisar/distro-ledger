@@ -50,7 +50,7 @@ export function OnboardingPage() {
   } = useForm<Form>({
     resolver: zodResolver(schema),
     mode: 'onChange',
-    defaultValues: { themeColor: '#2563EB', currencyCode: 'PKR', currencySymbol: 'Rs', taxIdLabel: 'NTN #', invoicePrefix: 'INV' },
+    defaultValues: { themeColor: '#17613F', currencyCode: 'PKR', currencySymbol: 'Rs', taxIdLabel: 'NTN #', invoicePrefix: 'INV' },
   })
   const themeColor = watch('themeColor')
 

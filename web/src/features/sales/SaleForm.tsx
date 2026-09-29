@@ -114,7 +114,8 @@ export function SaleForm({
     <Sheet
       open={open}
       onClose={onClose}
-      title={sale ? `Edit ${sale.invoiceNumber}` : 'New sale'}
+      eyebrow={sale ? 'Edit entry' : 'New entry'}
+      title={sale ? `Edit ${sale.invoiceNumber}` : 'Record a sale'}
       footer={
         <div className="flex gap-2">
           {sale && (

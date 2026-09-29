@@ -48,15 +48,15 @@ export function initTheme() {
   applyAccent(DEFAULT_ACCENT) // consistent branding before a tenant loads
 }
 
-export const DEFAULT_ACCENT = '#2563EB'
+export const DEFAULT_ACCENT = '#17613F'
 
 export const ACCENT_PRESETS = [
-  '#2563EB', // blue
-  '#0EA5E9', // sky
-  '#059669', // emerald
-  '#F59E0B', // amber
-  '#EC4899', // pink
-  '#8B5CF6', // violet
-  '#EF4444', // red
-  '#14B8A6', // teal
+  '#17613F', // forest (default)
+  '#0F766E', // teal
+  '#1D4ED8', // blue
+  '#7C3AED', // violet
+  '#B45309', // amber
+  '#BE123C', // rose
+  '#0369A1', // ocean
+  '#4D7C0F', // olive
 ]

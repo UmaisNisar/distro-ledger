@@ -3,19 +3,22 @@ import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 /**
- * DaisyUI modal: centered dialog on desktop, bottom sheet on mobile.
- * Overlays the page (no layout shift); content scrolls inside; animated open.
+ * Right-side slide-in drawer for creating/editing records.
+ * Full width on mobile, a fixed panel on desktop. Backdrop dims the whole
+ * viewport (portaled to <body>); content scrolls inside; no layout shift.
  */
 export function Sheet({
   open,
   onClose,
   title,
+  eyebrow,
   children,
   footer,
 }: {
   open: boolean
   onClose: () => void
   title: string
+  eyebrow?: string
   children: ReactNode
   footer?: ReactNode
 }) {
@@ -29,22 +32,38 @@ export function Sheet({
   if (!open) return null
 
   return createPortal(
-    <div className="modal modal-open modal-bottom sm:modal-middle">
-      <div className="modal-box modal-pop p-0 flex flex-col max-h-[92vh] sm:max-w-lg overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-base-300 sticky top-0 bg-base-100 z-10">
-          <h3 className="headline">{title}</h3>
-          <button className="btn btn-ghost btn-sm btn-circle" onClick={onClose} aria-label="Close">
-            <X size={20} />
+    <div className="fixed inset-0 z-[100]">
+      <button
+        className="absolute inset-0 bg-[rgba(22,32,27,0.38)] fade-in cursor-default"
+        onClick={onClose}
+        aria-label="Close"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="drawer-in absolute top-0 right-0 bottom-0 w-full sm:w-[460px] flex flex-col bg-base-100 shadow-[-12px_0_40px_rgba(22,32,27,0.18)]"
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b border-base-300 shrink-0">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            {eyebrow && <span className="section-header">{eyebrow}</span>}
+            <h3 className="title-2 truncate">{title}</h3>
+          </div>
+          <button
+            className="grid place-items-center w-11 h-11 shrink-0 rounded-xl border border-base-300 hover:bg-base-200 transition-colors"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X size={18} />
           </button>
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 py-4 flex flex-col gap-1">{children}</div>
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-5 flex flex-col gap-1">
+          {children}
+        </div>
         {footer && (
-          <div className="px-5 py-4 border-t border-base-300 bg-base-100 sticky bottom-0">{footer}</div>
+          <div className="px-6 py-4 border-t border-base-300 bg-base-100 shrink-0">{footer}</div>
         )}
       </div>
-      <button className="modal-backdrop" onClick={onClose} aria-label="Close">
-        close
-      </button>
     </div>,
     document.body,
   )

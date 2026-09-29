@@ -20,7 +20,7 @@ public static class DemoSeeder
             Name = "Demo Traders",
             Slug = "demo",
             PasswordHash = hasher.Hash("demo1234"),
-            ThemeColor = "#0A84FF",
+            ThemeColor = "#17613F",
             CurrencyCode = "PKR",
             CurrencySymbol = "Rs",
             TaxIdLabel = "NTN #",

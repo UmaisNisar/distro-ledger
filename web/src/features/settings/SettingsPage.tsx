@@ -41,7 +41,7 @@ export function SettingsPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: company?.name ?? '',
-      themeColor: company?.themeColor ?? '#2563EB',
+      themeColor: company?.themeColor ?? '#17613F',
       currencyCode: company?.currencyCode ?? 'PKR',
       currencySymbol: company?.currencySymbol ?? 'Rs',
       taxIdLabel: company?.taxIdLabel ?? 'NTN #',

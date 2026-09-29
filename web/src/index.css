@@ -3,10 +3,82 @@
   themes: light --default, dark --prefersdark;
 }
 
+/* Warm-paper light theme (editorial, numbers-first). Overrides DaisyUI's stock light. */
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f5f3ee;
+  --color-base-300: #e3e0d8;
+  --color-base-content: #16201b;
+  --color-primary: #17613f;
+  --color-primary-content: #ffffff;
+  --color-secondary: #202b25;
+  --color-secondary-content: #f5f3ee;
+  --color-accent: #17613f;
+  --color-accent-content: #ffffff;
+  --color-neutral: #16201b;
+  --color-neutral-content: #f5f3ee;
+  --color-info: #2f6f8f;
+  --color-info-content: #ffffff;
+  --color-success: #145236;
+  --color-success-content: #ffffff;
+  --color-warning: #7a4f00;
+  --color-warning-content: #ffffff;
+  --color-error: #8e2721;
+  --color-error-content: #ffffff;
+  --radius-selector: 0.75rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1.1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Warm dark theme — deep green-charcoal, matches the always-dark sidebar. */
+@plugin "daisyui/theme" {
+  name: "dark";
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: #1b2420;
+  --color-base-200: #141b18;
+  --color-base-300: #2b3630;
+  --color-base-content: #ecefea;
+  --color-primary: #4fa97c;
+  --color-primary-content: #0a130e;
+  --color-secondary: #2b3630;
+  --color-secondary-content: #ecefea;
+  --color-accent: #4fa97c;
+  --color-accent-content: #0a130e;
+  --color-neutral: #0f1512;
+  --color-neutral-content: #ecefea;
+  --color-info: #7fc2dd;
+  --color-info-content: #0a130e;
+  --color-success: #7fd1a4;
+  --color-success-content: #0a130e;
+  --color-warning: #e6c168;
+  --color-warning-content: #0a130e;
+  --color-error: #e79a94;
+  --color-error-content: #0a130e;
+  --radius-selector: 0.75rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1.1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
 /* ---------- Fonts ---------- */
 :root {
-  --font-app: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    system-ui, sans-serif;
+  --font-app: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 /* Reserve the scrollbar gutter so nothing shifts when content height changes
@@ -34,21 +106,25 @@ body {
 
 /* ---------- Typography helpers ---------- */
 .large-title {
-  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2rem);
-  line-height: 1.15;
-  font-weight: 750;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.25rem);
+  line-height: 1.12;
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 .title-2 {
+  font-family: var(--font-display);
   font-size: 1.35rem;
   line-height: 1.2;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 .headline {
-  font-size: 1.02rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   line-height: 1.3;
-  font-weight: 650;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .subhead {
   font-size: 0.92rem;
@@ -75,9 +151,9 @@ body {
 /* ---------- Surfaces ---------- */
 .panel {
   background: var(--color-base-100);
-  border: 1px solid color-mix(in oklab, var(--color-base-content) 8%, transparent);
-  border-radius: 1rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -18px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-base-300);
+  border-radius: 1.1rem;
+  box-shadow: 0 1px 2px rgba(22, 32, 27, 0.03), 0 12px 28px -22px rgba(22, 32, 27, 0.22);
 }
 .panel-hover {
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
@@ -144,11 +220,27 @@ body {
   animation: fade-in 0.2s ease both;
 }
 
+/* Right-side drawer slide-in */
+@keyframes drawer-in {
+  from {
+    opacity: 0.4;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.drawer-in {
+  animation: drawer-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-page,
   .stagger > *,
   .modal-pop,
-  .fade-in {
+  .fade-in,
+  .drawer-in {
     animation: none !important;
   }
 }
@@ -193,8 +285,15 @@ body {
   background-clip: content-box;
 }
 
-/* Numeric alignment in tables */
+/* Numeric alignment in tables + monospace numerals everywhere numbers matter */
 .tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.font-mono,
+.mono {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 

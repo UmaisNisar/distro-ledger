@@ -11,7 +11,7 @@ export function DashboardPage() {
   const { company } = useAuth()
   const navigate = useNavigate()
   const symbol = company?.currencySymbol ?? 'Rs'
-  const accent = company?.themeColor ?? '#2563EB'
+  const accent = company?.themeColor ?? '#17613F'
   const { data, isLoading } = useOverview()
   const recent = useSales({ pageSize: 6, page: 1 })
 
@@ -27,9 +27,9 @@ export function DashboardPage() {
           Array.from({ length: 4 }).map((_, i) => <div key={i} className="panel h-[92px] skeleton" />)
         ) : (
           <>
-            <StatTile icon={TrendingUp} label="This month" value={money(data.monthSales, symbol)} hint={`${data.monthTransactions} sales`} accent />
+            <StatTile icon={TrendingUp} label="This month" value={moneyCompact(data.monthSales, symbol)} hint={`${data.monthTransactions} sales`} invert />
             <StatTile icon={CalendarRange} label="This year" value={moneyCompact(data.yearSales, symbol)} />
-            <StatTile icon={Wallet} label="Outstanding" value={money(data.totalOutstanding, symbol)} hint="receivables" />
+            <StatTile icon={Wallet} label="Outstanding" value={moneyCompact(data.totalOutstanding, symbol)} hint="receivables" />
             <StatTile icon={Users} label="Customers" value={String(data.customerCount)} />
           </>
         )}

@@ -65,36 +65,49 @@ export function StatTile({
   hint,
   icon: Icon,
   accent,
+  invert,
 }: {
   label: string
   value: string
   hint?: string
   icon?: LucideIcon
   accent?: boolean
+  /** Dark, high-emphasis tile — use for the primary KPI. */
+  invert?: boolean
 }) {
+  const iconBg = invert
+    ? 'rgba(255,255,255,0.12)'
+    : accent
+      ? 'color-mix(in oklab, var(--color-primary) 16%, transparent)'
+      : 'color-mix(in oklab, var(--color-base-content) 8%, transparent)'
+  const iconColor = invert
+    ? '#f5f3ee'
+    : accent
+      ? 'var(--color-primary)'
+      : 'var(--color-base-content)'
   return (
-    <div className="panel panel-hover p-4 flex items-start gap-3 min-w-0">
+    <div
+      className={`panel panel-hover p-5 flex items-start gap-3 min-w-0 ${invert ? 'border-transparent' : ''}`}
+      style={invert ? { background: 'var(--color-neutral)', color: 'var(--color-neutral-content)' } : undefined}
+    >
       {Icon && (
         <span
-          className="grid place-items-center rounded-xl shrink-0"
-          style={{
-            width: 40,
-            height: 40,
-            background: accent
-              ? 'color-mix(in oklab, var(--color-primary) 16%, transparent)'
-              : 'color-mix(in oklab, var(--color-base-content) 8%, transparent)',
-            color: accent ? 'var(--color-primary)' : 'var(--color-base-content)',
-          }}
+          className="hidden sm:grid place-items-center rounded-xl shrink-0"
+          style={{ width: 40, height: 40, background: iconBg, color: iconColor }}
         >
           <Icon size={20} />
         </span>
       )}
       <div className="min-w-0">
-        <div className="footnote text-secondary truncate">{label}</div>
-        <div className="title-2 tabular truncate" title={value}>
+        <div className={`footnote truncate ${invert ? 'opacity-70' : 'text-secondary'}`}>{label}</div>
+        <div
+          className="tabular truncate font-semibold"
+          style={{ fontSize: 'clamp(1.15rem, 5vw, 1.6rem)', lineHeight: 1.15 }}
+          title={value}
+        >
           {value}
         </div>
-        {hint && <div className="footnote text-tertiary truncate">{hint}</div>}
+        {hint && <div className={`footnote truncate ${invert ? 'opacity-60' : 'text-tertiary'}`}>{hint}</div>}
       </div>
     </div>
   )

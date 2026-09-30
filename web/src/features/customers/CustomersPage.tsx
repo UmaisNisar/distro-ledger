@@ -128,7 +128,7 @@ export function CustomersPage() {
               { value: 'top', label: 'Top sales' },
             ]}
           />
-          <div className="flex flex-col gap-1 min-h-[200px] lg:max-h-[64vh] lg:overflow-y-auto -mx-1 px-1">
+          <div className="flex flex-col gap-1 min-h-[200px] lg:max-h-[64vh] lg:overflow-y-auto -m-1 p-1">
             {list.isLoading ? (
               <SkeletonRows count={6} />
             ) : rows.length === 0 ? (

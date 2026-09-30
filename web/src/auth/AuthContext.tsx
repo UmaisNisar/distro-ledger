@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api, setToken } from '../lib/api'
 import type { AuthResponse, Company } from '../lib/types'
 import { applyAccent } from '../theme/theme'
+import { setNumberingSystem } from '../lib/format'
 
 interface AuthState {
   company: Company | null
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setCompany = useCallback((c: Company) => {
     setCompanyState(c)
     applyAccent(c.themeColor)
+    setNumberingSystem(c.currencyCode)
   }, [])
 
   // On boot, if we have a token, hydrate the company.

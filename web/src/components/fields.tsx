@@ -9,7 +9,9 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react'
-import { Check, ChevronDown, Eye, EyeOff, Search } from 'lucide-react'
+import { Calendar, Check, ChevronDown, Eye, EyeOff, Search } from 'lucide-react'
+import { format as formatDate, parseISO } from 'date-fns'
+import { DayPicker } from 'react-day-picker'
 
 function Wrap({
   id,
@@ -208,6 +210,90 @@ export function Combobox({
                 ))
               )}
             </div>
+          </div>
+        )}
+      </div>
+    </Wrap>
+  )
+}
+
+/** Themed date picker. Wraps react-day-picker (the calendar DaisyUI officially
+ * themes via its `.react-day-picker` component classes) in an in-app popover, so
+ * it matches the app instead of the unstyleable native browser popup. Value is an
+ * ISO date string (yyyy-MM-dd). */
+export function DateField({
+  label,
+  value,
+  onChange,
+  error,
+  hint,
+  required,
+  placeholder = 'Select a date',
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  error?: string
+  hint?: string
+  required?: boolean
+  placeholder?: string
+}) {
+  const id = useId()
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
+
+  const parsed = value ? parseISO(value) : null
+  const selected = parsed && !isNaN(parsed.getTime()) ? parsed : undefined
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const thisYear = new Date().getFullYear()
+
+  return (
+    <Wrap id={id} label={label} error={error} required={required} hint={hint}>
+      <div ref={wrapRef} className="relative">
+        <button
+          type="button"
+          id={id}
+          className={`input w-full flex items-center justify-between gap-2 text-left ${error ? 'input-error' : ''}`}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <span className={selected ? 'tabular' : 'text-tertiary'}>
+            {selected ? formatDate(selected, 'd MMM yyyy') : placeholder}
+          </span>
+          <Calendar size={18} className="opacity-50 shrink-0" />
+        </button>
+        {open && (
+          <div className="absolute z-30 mt-1.5 rounded-xl border border-base-300 bg-base-100 shadow-lg overflow-hidden fade-in">
+            <DayPicker
+              className="react-day-picker"
+              mode="single"
+              required={false}
+              selected={selected}
+              defaultMonth={selected}
+              onSelect={(d) => {
+                onChange(d ? formatDate(d, 'yyyy-MM-dd') : '')
+                if (d) setOpen(false)
+              }}
+              captionLayout="dropdown"
+              startMonth={new Date(thisYear - 5, 0)}
+              endMonth={new Date(thisYear + 1, 11)}
+              showOutsideDays
+            />
           </div>
         )}
       </div>

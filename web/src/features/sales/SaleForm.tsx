@@ -4,7 +4,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '../../auth/AuthContext'
-import { Combobox, MoneyField, SelectField, TextField, TextareaField } from '../../components/fields'
+import { Combobox, DateField, MoneyField, SelectField, TextareaField } from '../../components/fields'
 import { Sheet } from '../../components/Sheet'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { Button } from '../../components/ui'
@@ -171,7 +171,19 @@ export function SaleForm({
           />
         )}
       />
-      <TextField label="Date" type="date" required error={errors.date?.message} {...register('date')} />
+      <Controller
+        name="date"
+        control={control}
+        render={({ field }) => (
+          <DateField
+            label="Date"
+            required
+            value={field.value ?? ''}
+            onChange={field.onChange}
+            error={errors.date?.message}
+          />
+        )}
+      />
       <div className="grid grid-cols-2 gap-2">
         <MoneyField
           label="Total amount"

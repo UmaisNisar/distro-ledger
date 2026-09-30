@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
 import { EmptyState, SkeletonRows, StatTile } from '../../components/ui'
-import { money, shortDate } from '../../lib/format'
+import { money, moneyCompact, shortDate } from '../../lib/format'
 import { useReceivables } from '../../lib/queries'
 
 export function ReceivablesPage() {
@@ -23,11 +23,11 @@ export function ReceivablesPage() {
       ) : (
         <>
           <div className="grid sm:grid-cols-3 gap-4 stagger">
-            <StatTile icon={Wallet} label="Total outstanding" value={money(data.totalOutstanding, symbol)} accent />
+            <StatTile icon={Wallet} label="Total outstanding" value={moneyCompact(data.totalOutstanding, symbol)} accent />
             <StatTile label="Customers owing" value={String(data.customers.length)} />
             <StatTile
               label="Over 90 days"
-              value={money(data.customers.reduce((s, c) => s + c.days90Plus, 0), symbol)}
+              value={moneyCompact(data.customers.reduce((s, c) => s + c.days90Plus, 0), symbol)}
             />
           </div>
 
@@ -46,10 +46,10 @@ export function ReceivablesPage() {
                   </span>
                 </span>
                 <span className="text-right shrink-0">
-                  <span className="block tabular font-bold">{money(c.outstanding, symbol)}</span>
+                  <span className="block tabular font-bold" title={money(c.outstanding, symbol)}>{moneyCompact(c.outstanding, symbol)}</span>
                   {c.days90Plus > 0 && (
-                    <span className="block footnote" style={{ color: 'var(--color-error)' }}>
-                      {money(c.days90Plus, symbol)} over 90d
+                    <span className="block footnote" style={{ color: 'var(--color-error)' }} title={money(c.days90Plus, symbol)}>
+                      {moneyCompact(c.days90Plus, symbol)} over 90d
                     </span>
                   )}
                 </span>
@@ -87,7 +87,7 @@ export function ReceivablesPage() {
                       <Cell v={c.days31To60} symbol={symbol} warn />
                       <Cell v={c.days61To90} symbol={symbol} warn />
                       <Cell v={c.days90Plus} symbol={symbol} bad />
-                      <td className="text-right font-bold tabular">{money(c.outstanding, symbol)}</td>
+                      <td className="text-right font-bold tabular" title={money(c.outstanding, symbol)}>{moneyCompact(c.outstanding, symbol)}</td>
                       <td className="text-secondary whitespace-nowrap">{c.oldestDate ? shortDate(c.oldestDate) : '—'}</td>
                     </tr>
                   ))}
@@ -103,8 +103,8 @@ export function ReceivablesPage() {
 
 function Cell({ v, symbol, warn, bad }: { v: number; symbol: string; warn?: boolean; bad?: boolean }) {
   return (
-    <td className="text-right tabular" style={{ color: v <= 0 ? 'var(--color-base-content)' : bad ? 'var(--color-error)' : warn ? 'var(--color-warning)' : undefined, opacity: v <= 0 ? 0.35 : 1 }}>
-      {v > 0 ? money(v, symbol) : '—'}
+    <td className="text-right tabular" title={v > 0 ? money(v, symbol) : undefined} style={{ color: v <= 0 ? 'var(--color-base-content)' : bad ? 'var(--color-error)' : warn ? 'var(--color-warning)' : undefined, opacity: v <= 0 ? 0.35 : 1 }}>
+      {v > 0 ? moneyCompact(v, symbol) : '—'}
     </td>
   )
 }

@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns'
-import { money } from '../lib/format'
+import { money, moneyCompact } from '../lib/format'
 import type { Sale } from '../lib/types'
 import { PaymentBadge } from './ui'
 
@@ -40,7 +40,7 @@ export function SaleRowCard({
         <span className="footnote text-secondary truncate tabular">{sale.invoiceNumber}</span>
       </span>
       <span className="flex flex-col items-end gap-1 shrink-0">
-        <span className="tabular text-[0.95rem] font-semibold">{money(sale.amount, symbol)}</span>
+        <span className="tabular text-[0.95rem] font-semibold" title={money(sale.amount, symbol)}>{moneyCompact(sale.amount, symbol)}</span>
         <PaymentBadge status={sale.paymentStatus} />
       </span>
     </button>

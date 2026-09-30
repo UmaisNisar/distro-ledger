@@ -29,19 +29,24 @@ export function num(amount: number): string {
   return new Intl.NumberFormat(groupLocale(), { maximumFractionDigits: 0 }).format(Math.round(amount ?? 0))
 }
 
-/** Compact money for KPI tiles (e.g. Rs 1.11 Cr / Rs 1.4M). */
-export function moneyCompact(amount: number, symbol = 'Rs'): string {
+/** Readable amount WITHOUT a currency symbol. Abbreviates only large values —
+ * Cr/Lac (South Asian) or M (Western) — and leaves anything under the threshold
+ * as a full grouped number (small amounts are already easy to read). */
+export function compactAmount(amount: number): string {
   const n = amount ?? 0
   const abs = Math.abs(n)
   if (numberingSystem === 'south-asian') {
-    if (abs >= 1e7) return `${symbol} ${trim((n / 1e7).toFixed(2))} Cr`
-    if (abs >= 1e5) return `${symbol} ${trim((n / 1e5).toFixed(2))} Lac`
-    if (abs >= 1e3) return `${symbol} ${trim((n / 1e3).toFixed(1))} K`
-    return money(n, symbol)
+    if (abs >= 1e7) return trim((n / 1e7).toFixed(2)) + ' Cr'
+    if (abs >= 1e5) return trim((n / 1e5).toFixed(2)) + ' Lac'
+    return num(n)
   }
-  if (abs >= 1e6) return `${symbol} ${(n / 1e6).toFixed(1)}M`
-  if (abs >= 1e3) return `${symbol} ${(n / 1e3).toFixed(1)}K`
-  return money(n, symbol)
+  if (abs >= 1e6) return trim((n / 1e6).toFixed(2)) + 'M'
+  return num(n)
+}
+
+/** Readable money with the tenant's symbol (e.g. Rs 1.11 Cr, Rs 1.13 Lac, Rs 22,440). */
+export function moneyCompact(amount: number, symbol = 'Rs'): string {
+  return `${symbol} ${compactAmount(amount)}`
 }
 
 /** Short number for chart labels (e.g. 1.5Lac, 1.11Cr / 150K, 2.82M). */

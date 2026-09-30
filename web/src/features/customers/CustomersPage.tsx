@@ -1,4 +1,4 @@
-import { CalendarDays, Pencil, Plus, Receipt, Search, Trash2, Users, Wallet } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Pencil, Plus, Receipt, Search, Trash2, Users, Wallet } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
@@ -8,7 +8,7 @@ import { Page } from '../../components/Page'
 import { Segmented } from '../../components/fields'
 import { Button, EmptyState, PaymentBadge, SkeletonRows, StatTile } from '../../components/ui'
 import { SaleRowCard } from '../../components/rows'
-import { dayMonth, money, num, shortDate } from '../../lib/format'
+import { compactAmount, dayMonth, money, moneyCompact, shortDate } from '../../lib/format'
 import {
   useCustomer,
   useCustomers,
@@ -43,6 +43,8 @@ export function CustomersPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [salesPage, setSalesPage] = useState(1)
   const SALES_PER_PAGE = 10
+  // Mobile is a master→detail flow: the list, then the selected customer full-screen.
+  const [mobileDetail, setMobileDetail] = useState(false)
 
   const list = useCustomers(q || undefined)
   const rows = useMemo(() => {
@@ -70,6 +72,7 @@ export function CustomersPage() {
 
   const select = (cid: string) => {
     setSelectedId(cid)
+    setMobileDetail(true)
     navigate(`/customers/${cid}`, { replace: true })
   }
 
@@ -109,9 +112,9 @@ export function CustomersPage() {
       subtitle={list.data ? `${list.data.length} on file` : undefined}
       action={<Button onClick={() => setFormOpen(true)}><Plus size={18} /> New customer</Button>}
     >
-      <div className="grid lg:grid-cols-[360px_1fr] gap-4 items-start">
-        {/* List */}
-        <div className="panel p-4 flex flex-col gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-4 items-start">
+        {/* List (hidden on mobile once a customer is opened) */}
+        <div className={`panel p-4 flex-col gap-3 min-w-0 ${mobileDetail ? 'hidden lg:flex' : 'flex'}`}>
           <label className="input flex items-center gap-2 w-full">
             <Search size={18} className="opacity-60 shrink-0" />
             <input className="grow" placeholder="Search name or tax ID…" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -151,7 +154,7 @@ export function CustomersPage() {
                         {c.taxId ? `${company?.taxIdLabel ?? 'Tax ID'} ${c.taxId}` : c.city || 'No tax ID'}
                       </span>
                     </span>
-                    <span className="tabular text-[0.85rem] shrink-0">{num(c.totalSales)}</span>
+                    <span className="tabular text-[0.85rem] shrink-0" title={money(c.totalSales, symbol)}>{compactAmount(c.totalSales)}</span>
                   </button>
                 )
               })
@@ -159,12 +162,20 @@ export function CustomersPage() {
           </div>
         </div>
 
-        {/* Detail */}
-        {!detail.data ? (
-          <div className="panel"><SkeletonRows count={5} /></div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <div className="panel p-6 flex flex-col gap-5">
+        {/* Detail (full-screen on mobile once opened) */}
+        <div className={`min-w-0 ${mobileDetail ? '' : 'hidden lg:block'}`}>
+          <button
+            type="button"
+            onClick={() => setMobileDetail(false)}
+            className="lg:hidden inline-flex items-center gap-1 mb-3 text-sm font-semibold text-secondary hover:text-base-content transition-colors"
+          >
+            <ChevronLeft size={16} /> All customers
+          </button>
+          {!detail.data ? (
+            <div className="panel"><SkeletonRows count={5} /></div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div className="panel p-6 flex flex-col gap-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="title-2">{detail.data.name}</h2>
@@ -183,7 +194,7 @@ export function CustomersPage() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <StatTile size="sm" icon={Receipt} label={`${year} total`} value={money(summary.data?.yearSales ?? 0, symbol)} invert />
+                <StatTile size="sm" icon={Receipt} label={`${year} total`} value={moneyCompact(summary.data?.yearSales ?? 0, symbol)} invert />
                 <StatTile size="sm" icon={Wallet} label="Sales" value={String(summary.data?.yearTransactions ?? 0)} />
                 <StatTile size="sm" icon={CalendarDays} label="Last sale" value={lastSale ? dayMonth(lastSale) : '—'} />
               </div>
@@ -226,7 +237,7 @@ export function CustomersPage() {
                           <tr key={s.id} className="hover:bg-base-200 cursor-pointer transition-colors" onClick={() => navigate('/sales', { state: { editSaleId: s.id } })}>
                             <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
                             <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
-                            <td className="text-right tabular font-semibold">{money(s.amount, symbol)}</td>
+                            <td className="text-right tabular font-semibold" title={money(s.amount, symbol)}>{moneyCompact(s.amount, symbol)}</td>
                             <td><PaymentBadge status={s.paymentStatus} /></td>
                           </tr>
                         ))}
@@ -255,7 +266,8 @@ export function CustomersPage() {
               )}
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
 
       {formOpen && <CustomerForm open={formOpen} onClose={() => setFormOpen(false)} />}

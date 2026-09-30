@@ -121,7 +121,7 @@ export function StatTile({
       </span>
       <span
         className="tabular truncate font-semibold"
-        style={{ fontSize: sm ? 'clamp(1.05rem, 3vw, 1.35rem)' : 'clamp(1.35rem, 4vw, 1.9rem)', lineHeight: 1.1 }}
+        style={{ fontSize: sm ? 'clamp(0.95rem, 3.2vw, 1.35rem)' : 'clamp(1rem, 4.6vw, 1.9rem)', lineHeight: 1.1 }}
         title={value}
       >
         {value}

@@ -6,7 +6,7 @@ import { MonthBarChart } from '../../components/MonthBarChart'
 import { Page } from '../../components/Page'
 import { Button, EmptyState, LinkAction, PaymentBadge, SkeletonRows, StatTile } from '../../components/ui'
 import { SaleRowCard } from '../../components/rows'
-import { money, moneyCompact, num, shortDate } from '../../lib/format'
+import { compactAmount, money, moneyCompact, shortDate } from '../../lib/format'
 import { useCustomers, useOverview, useSales } from '../../lib/queries'
 import { SaleForm } from '../sales/SaleForm'
 
@@ -75,7 +75,7 @@ export function DashboardPage() {
         )}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Chart */}
         <div className="panel p-6 lg:col-span-2 flex flex-col gap-5">
           <div className="flex items-start justify-between gap-3">
@@ -119,7 +119,7 @@ export function DashboardPage() {
                 <button key={c.id} className="flex flex-col gap-2 text-left" onClick={() => navigate(`/customers/${c.id}`)}>
                   <div className="flex justify-between gap-3">
                     <span className="text-[0.95rem] font-medium truncate" title={c.name}>{c.name}</span>
-                    <span className="tabular text-[0.95rem] shrink-0">{num(c.totalSales)}</span>
+                    <span className="tabular text-[0.95rem] shrink-0" title={money(c.totalSales, symbol)}>{compactAmount(c.totalSales)}</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-base-300 overflow-hidden">
                     <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round((c.totalSales / topMax) * 100)}%` }} />
@@ -167,7 +167,7 @@ export function DashboardPage() {
                       <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
                       <td className="font-medium">{s.customerName}</td>
                       <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
-                      <td className="text-right tabular font-semibold">{money(s.amount, symbol)}</td>
+                      <td className="text-right tabular font-semibold" title={money(s.amount, symbol)}>{moneyCompact(s.amount, symbol)}</td>
                       <td><PaymentBadge status={s.paymentStatus} /></td>
                     </tr>
                   ))}

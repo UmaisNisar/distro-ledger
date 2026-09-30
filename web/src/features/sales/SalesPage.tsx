@@ -16,7 +16,7 @@ import { Page } from '../../components/Page'
 import { Segmented, ThemedSelect } from '../../components/fields'
 import { Button, EmptyState, PaymentBadge, SkeletonRows } from '../../components/ui'
 import { SaleRowCard } from '../../components/rows'
-import { money, MONTHS, shortDate } from '../../lib/format'
+import { money, moneyCompact, MONTHS, shortDate } from '../../lib/format'
 import { useCustomers, useSales } from '../../lib/queries'
 import type { Sale } from '../../lib/types'
 import { SaleForm } from './SaleForm'
@@ -34,7 +34,7 @@ export function SalesPage() {
   const [month, setMonth] = useState(now.getMonth() + 1) // default to current month
   const [status, setStatus] = useState('')
   const [globalFilter, setGlobalFilter] = useState('')
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: true }])
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: false }])
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Sale | undefined>()
@@ -70,13 +70,13 @@ export function SalesPage() {
       }),
       col.accessor('amount', {
         header: 'Amount',
-        cell: (c) => <span className="tabular">{money(c.getValue(), symbol)}</span>,
+        cell: (c) => <span className="tabular" title={money(c.getValue(), symbol)}>{moneyCompact(c.getValue(), symbol)}</span>,
       }),
       col.accessor('outstanding', {
         header: 'Outstanding',
         cell: (c) => (
-          <span className="tabular" style={{ color: c.getValue() > 0 ? 'var(--color-warning)' : undefined }}>
-            {money(c.getValue(), symbol)}
+          <span className="tabular" title={money(c.getValue(), symbol)} style={{ color: c.getValue() > 0 ? 'var(--color-warning)' : undefined }}>
+            {moneyCompact(c.getValue(), symbol)}
           </span>
         ),
       }),

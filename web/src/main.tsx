@@ -7,6 +7,7 @@ import { App } from './App'
 import { AdminProvider } from './auth/AdminContext'
 import { AuthProvider } from './auth/AuthContext'
 import { ConfirmProvider } from './components/ConfirmProvider'
+import { WakingIndicator } from './components/WakingIndicator'
 import { ThemeModeProvider, useThemeMode } from './theme/ThemeModeProvider'
 import { initTheme } from './theme/theme'
 import './index.css'
@@ -42,6 +43,7 @@ createRoot(document.getElementById('root')!).render(
               <ConfirmProvider>
                 <App />
               </ConfirmProvider>
+              <WakingIndicator />
               <AppToaster />
             </AuthProvider>
           </AdminProvider>

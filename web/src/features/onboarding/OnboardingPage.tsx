@@ -100,6 +100,9 @@ export function OnboardingPage() {
 
         {step === 1 && (
           <>
+            <p className="subhead text-secondary mb-2">
+              Optional — sensible defaults are already set. Change anything now, or later in Settings.
+            </p>
             <label className="block text-sm font-medium mb-2 text-secondary">Accent color</label>
             <div className="flex flex-wrap gap-2.5 items-center mb-2">
               {ACCENT_PRESETS.map((c) => (
@@ -149,6 +152,15 @@ export function OnboardingPage() {
             <Button type="submit" block loading={isSubmitting}>Create workspace</Button>
           )}
         </div>
+        {step === 1 && (
+          <button
+            type="button"
+            onClick={() => setStep(2)}
+            className="mx-auto mt-2 text-sm font-semibold text-secondary hover:text-base-content transition-colors"
+          >
+            Skip — use defaults
+          </button>
+        )}
       </form>
 
       <p className="subhead text-secondary text-center mt-4">

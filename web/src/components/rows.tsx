@@ -1,11 +1,11 @@
-import { format, parseISO } from 'date-fns'
-import { money, moneyCompact } from '../lib/format'
+import { format } from 'date-fns'
+import { calendarDate, money, moneyCompact } from '../lib/format'
 import type { Sale } from '../lib/types'
 import { PaymentBadge } from './ui'
 
 function dateParts(iso: string): { day: string; mon: string } {
   try {
-    const d = parseISO(iso)
+    const d = calendarDate(iso)
     return { day: format(d, 'd'), mon: format(d, 'MMM') }
   } catch {
     return { day: '–', mon: '' }

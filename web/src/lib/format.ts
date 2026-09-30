@@ -64,9 +64,19 @@ export function shortNum(amount: number): string {
   return String(Math.round(n))
 }
 
+// Sale dates are calendar dates stored at UTC midnight (e.g. 2026-09-01T00:00:00Z).
+// Formatting them in the viewer's local timezone would shift the day (a Sep-1 UTC
+// value shows as "31 Aug" behind UTC), so we always format the stored UTC calendar
+// day. Taking the ISO's leading yyyy-MM-dd and rebuilding a local Date keeps the
+// same day in every timezone, for date-only strings and full timestamps alike.
+export function calendarDate(iso: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : parseISO(iso)
+}
+
 export function shortDate(iso: string): string {
   try {
-    return format(parseISO(iso), 'd MMM yyyy')
+    return format(calendarDate(iso), 'd MMM yyyy')
   } catch {
     return iso
   }
@@ -75,7 +85,7 @@ export function shortDate(iso: string): string {
 /** Day + short month, no year (e.g. "24 Sep") — for tight tiles. */
 export function dayMonth(iso: string): string {
   try {
-    return format(parseISO(iso), 'd MMM')
+    return format(calendarDate(iso), 'd MMM')
   } catch {
     return iso
   }
@@ -83,7 +93,7 @@ export function dayMonth(iso: string): string {
 
 export function inputDate(iso: string): string {
   try {
-    return format(parseISO(iso), 'yyyy-MM-dd')
+    return format(calendarDate(iso), 'yyyy-MM-dd')
   } catch {
     return iso
   }

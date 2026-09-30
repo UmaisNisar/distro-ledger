@@ -8,7 +8,7 @@ import { Sheet } from '../../components/Sheet'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { Button } from '../../components/ui'
 import { notify } from '../../lib/toast'
-import { inputDate } from '../../lib/format'
+import { inputDate, money } from '../../lib/format'
 import { useDeleteSale, useSaveSale } from '../../lib/queries'
 import type { Customer, Sale } from '../../lib/types'
 
@@ -54,6 +54,7 @@ export function SaleForm({
   const {
     register,
     control,
+    watch,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormInput, unknown, FormOutput>({
@@ -116,6 +117,14 @@ export function SaleForm({
     }
   }
 
+  // Live payment status derived from the two amounts (clarifies their relationship).
+  const amountV = Number(watch('amount')) || 0
+  const paidV = Number(watch('amountPaid')) || 0
+  const outstanding = Math.max(0, amountV - paidV)
+  const derivedStatus = amountV <= 0 ? null : paidV <= 0 ? 'Unpaid' : paidV >= amountV ? 'Paid' : 'Partial'
+  const statusColor =
+    derivedStatus === 'Paid' ? 'var(--color-success)' : derivedStatus === 'Partial' ? 'var(--color-warning)' : 'var(--color-error)'
+
   return (
     <Sheet
       open={open}
@@ -146,6 +155,7 @@ export function SaleForm({
         render={({ field }) => (
           <Combobox
             label="Customer"
+            required
             value={field.value ?? ''}
             onChange={field.onChange}
             options={customers.map((c) => ({ value: c.id, label: c.name, hint: c.taxId ?? undefined }))}
@@ -155,23 +165,37 @@ export function SaleForm({
           />
         )}
       />
-      <TextField label="Date" type="date" error={errors.date?.message} {...register('date')} />
+      <TextField label="Date" type="date" required error={errors.date?.message} {...register('date')} />
       <div className="grid grid-cols-2 gap-2">
         <MoneyField
-          label="Amount"
+          label="Total amount"
+          required
           symbol={symbol}
           placeholder="0"
+          hint="Full invoice value"
           error={errors.amount?.message}
           {...register('amount')}
         />
         <MoneyField
-          label="Amount paid"
+          label="Received"
           symbol={symbol}
           placeholder="0"
+          hint="Paid so far · 0 if unpaid"
           error={errors.amountPaid?.message}
           {...register('amountPaid')}
         />
       </div>
+      {derivedStatus && (
+        <div className="flex items-center justify-between px-3 py-2.5 -mt-1 mb-1 rounded-lg bg-base-200 text-[0.85rem]">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full" style={{ background: statusColor }} />
+            <span className="font-semibold" style={{ color: statusColor }}>{derivedStatus}</span>
+          </span>
+          <span className="text-secondary">
+            Outstanding <span className="tabular font-semibold text-base-content">{money(outstanding, symbol)}</span>
+          </span>
+        </div>
+      )}
       <SelectField label="Payment method" error={errors.paymentMethod?.message} {...register('paymentMethod')}>
         <option value="">Not set</option>
         {METHODS.map((m) => (

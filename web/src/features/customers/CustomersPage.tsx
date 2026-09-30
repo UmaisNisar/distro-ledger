@@ -114,7 +114,7 @@ export function CustomersPage() {
               { value: 'top', label: 'Top sales' },
             ]}
           />
-          <div className="flex flex-col gap-1 lg:max-h-[64vh] lg:overflow-y-auto -mx-1 px-1">
+          <div className="flex flex-col gap-1 min-h-[200px] lg:max-h-[64vh] lg:overflow-y-auto -mx-1 px-1">
             {list.isLoading ? (
               <SkeletonRows count={6} />
             ) : rows.length === 0 ? (
@@ -135,7 +135,7 @@ export function CustomersPage() {
                       {initials(c.name)}
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className="block text-[0.95rem] font-medium truncate">{c.name}</span>
+                      <span className="block text-[0.95rem] font-medium truncate" title={c.name}>{c.name}</span>
                       <span className="block footnote text-secondary truncate">
                         {c.taxId ? `${company?.taxIdLabel ?? 'Tax ID'} ${c.taxId}` : c.city || 'No tax ID'}
                       </span>
@@ -164,7 +164,7 @@ export function CustomersPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" onClick={() => setEditOpen(true)}><Pencil size={16} /> Edit</Button>
-                  <Button variant="danger" size="sm" onClick={onDelete} loading={del.isPending}><Trash2 size={16} /></Button>
+                  <Button variant="danger" size="sm" onClick={onDelete} loading={del.isPending} className="tooltip tooltip-bottom" data-tip="Delete customer" aria-label="Delete customer"><Trash2 size={16} /></Button>
                   <Button size="sm" onClick={() => navigate('/sales', { state: { newForCustomerId: detail.data!.id } })}>
                     <Plus size={16} /> New sale
                   </Button>
@@ -188,7 +188,7 @@ export function CustomersPage() {
             </div>
 
             {/* Sales list */}
-            <div className="panel overflow-hidden">
+            <div className="panel overflow-hidden min-h-[260px]">
               {detailSales.isLoading ? (
                 <div className="p-4"><SkeletonRows count={4} /></div>
               ) : detailSales.data && detailSales.data.items.length > 0 ? (

@@ -36,8 +36,8 @@ export function LoginPage() {
   return (
     <AuthShell title="Welcome back" subtitle="Sign in to your company workspace">
       <form onSubmit={onSubmit} className="flex flex-col gap-1">
-        <TextField label="Company handle" placeholder="salah-traders" autoCapitalize="none" autoComplete="username" error={errors.slug?.message} {...register('slug')} />
-        <PasswordField label="Password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
+        <TextField label="Company handle" required placeholder="salah-traders" autoCapitalize="none" autoComplete="username" error={errors.slug?.message} {...register('slug')} />
+        <PasswordField label="Password" required autoComplete="current-password" error={errors.password?.message} {...register('password')} />
         <Button type="submit" block loading={isSubmitting} className="mt-2">Sign in</Button>
       </form>
       <p className="subhead text-secondary text-center mt-4">

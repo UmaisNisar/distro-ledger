@@ -104,7 +104,7 @@ export function AdminDashboard() {
                           <button className="btn btn-ghost btn-sm gap-1" onClick={() => onReset(c)}>
                             <KeyRound size={15} /> Reset
                           </button>
-                          <button className="btn btn-ghost btn-sm btn-square text-error" onClick={() => onDelete(c)} aria-label="Delete">
+                          <button className="btn btn-ghost btn-sm btn-square text-error tooltip tooltip-left" data-tip="Delete company" onClick={() => onDelete(c)} aria-label="Delete">
                             <Trash2 size={16} />
                           </button>
                         </div>

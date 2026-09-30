@@ -46,8 +46,8 @@ export function AdminLoginPage() {
         </div>
         <div className="panel p-6 animate-page">
           <form onSubmit={onSubmit} className="flex flex-col gap-1">
-            <TextField label="Username" autoCapitalize="none" autoComplete="username" error={errors.username?.message} {...register('username')} />
-            <PasswordField label="Password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
+            <TextField label="Username" required autoCapitalize="none" autoComplete="username" error={errors.username?.message} {...register('username')} />
+            <PasswordField label="Password" required autoComplete="current-password" error={errors.password?.message} {...register('password')} />
             <Button type="submit" block loading={isSubmitting} className="mt-2">Sign in</Button>
           </form>
         </div>

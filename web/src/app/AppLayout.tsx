@@ -1,8 +1,9 @@
-import { LayoutDashboard, LogOut, Receipt, Settings, Users, Wallet } from 'lucide-react'
+import { LayoutDashboard, LogOut, Moon, Receipt, Settings, Sun, Users, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { useThemeMode } from '../theme/ThemeModeProvider'
 
 const NAV = [
   { to: '/', label: 'Dashboard', short: 'Home', icon: LayoutDashboard, end: true },
@@ -14,6 +15,8 @@ const NAV = [
 
 export function AppLayout() {
   const { company, logout } = useAuth()
+  const { mode, toggle } = useThemeMode()
+  const isDark = mode === 'dark'
   const [drawerOpen, setDrawerOpen] = useState(false)
   const initial = company?.name?.[0]?.toUpperCase() ?? '·'
 
@@ -49,41 +52,36 @@ export function AppLayout() {
           </NavLink>
         ))}
       </nav>
-      <div className="p-3 flex flex-col gap-1 border-t border-white/10">
-        {/* Company identity */}
-        <div className="flex items-center gap-3 px-3 py-2 mb-1">
-          <span className="grid place-items-center w-9 h-9 rounded-full bg-white/10 font-bold shrink-0">
-            {initial}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-semibold truncate leading-tight">{company?.name}</span>
-            <span className="block text-[0.72rem] text-[#B9C3BD] truncate">@{company?.slug}</span>
-          </span>
-        </div>
-        {/* Settings */}
-        <NavLink to="/settings" onClick={() => setDrawerOpen(false)}>
-          {({ isActive }) => (
-            <span
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
-                isActive
-                  ? 'bg-white/[0.09] text-white font-semibold'
-                  : 'text-[#B9C3BD] hover:bg-white/[0.05] hover:text-white'
-              }`}
-            >
-              <Settings size={20} className="shrink-0" />
-              <span className="text-[0.95rem]">Settings</span>
-            </span>
-          )}
+      {/* Quick actions (identity already shown in the header above) */}
+      <div className="p-3 border-t border-white/10 flex items-center gap-1">
+        <NavLink
+          to="/settings"
+          onClick={() => setDrawerOpen(false)}
+          aria-label="Settings"
+          data-tip="Settings"
+          className={({ isActive }) =>
+            `tooltip tooltip-top grid place-items-center w-10 h-10 rounded-lg transition-colors ${
+              isActive ? 'bg-white/[0.09] text-white' : 'text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white'
+            }`
+          }
+        >
+          <Settings size={19} />
         </NavLink>
-        {/* Theme toggle */}
-        <ThemeToggle />
-        {/* Sign out */}
+        <button
+          onClick={toggle}
+          aria-label={isDark ? 'Light mode' : 'Dark mode'}
+          data-tip={isDark ? 'Light mode' : 'Dark mode'}
+          className="tooltip tooltip-top grid place-items-center w-10 h-10 rounded-lg text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white transition-colors"
+        >
+          {isDark ? <Sun size={19} /> : <Moon size={19} />}
+        </button>
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#B9C3BD] hover:bg-white/[0.05] hover:text-white transition-all duration-150"
+          aria-label="Sign out"
+          data-tip="Sign out"
+          className="tooltip tooltip-top grid place-items-center w-10 h-10 rounded-lg text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white transition-colors"
         >
-          <LogOut size={20} className="shrink-0" />
-          <span className="text-[0.95rem]">Sign out</span>
+          <LogOut size={19} />
         </button>
       </div>
     </aside>

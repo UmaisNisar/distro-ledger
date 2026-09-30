@@ -42,6 +42,7 @@ export function MonthBarChart({
               type="button"
               onClick={() => onSelect(i)}
               aria-label={`${d.monthName}: ${shortNum(d.total)}`}
+              title={`${d.monthName} · ${shortNum(d.total)} · ${d.transactions} ${d.transactions === 1 ? 'sale' : 'sales'}`}
               className="flex-1 basis-0 flex flex-col justify-end items-center gap-1.5 pb-2 group"
               style={{ height }}
             >

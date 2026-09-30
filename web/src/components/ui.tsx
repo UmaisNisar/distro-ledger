@@ -66,7 +66,9 @@ export function Spinner({ className = '' }: { className?: string }) {
 export function PaymentBadge({ status }: { status: PaymentStatus }) {
   const cls =
     status === 'Paid' ? 'badge-success' : status === 'Partial' ? 'badge-warning' : 'badge-error'
-  return <span className={`badge badge-soft ${cls} font-semibold`}>{status}</span>
+  const tip =
+    status === 'Paid' ? 'Paid in full' : status === 'Partial' ? 'Partially paid — balance outstanding' : 'Unpaid — full amount outstanding'
+  return <span className={`badge badge-soft ${cls} font-semibold`} title={tip}>{status}</span>
 }
 
 export function SectionHeader({ children, action }: { children: ReactNode; action?: ReactNode }) {
@@ -85,10 +87,13 @@ export function StatTile({
   invert,
   onClick,
   size = 'md',
+  tip,
 }: {
   label: string
   value: string
   hint?: string
+  /** Hover explanation of what this metric means. */
+  tip?: string
   /** Kept for API compatibility; decorative icons are no longer rendered. */
   icon?: LucideIcon
   accent?: boolean
@@ -104,6 +109,7 @@ export function StatTile({
   return (
     <Tag
       onClick={onClick}
+      title={tip}
       className={`panel ${onClick ? 'panel-hover cursor-pointer' : ''} ${sm ? 'p-4' : 'p-5'} flex flex-col gap-1.5 min-w-0 w-full text-left ${invert ? 'border-transparent' : ''}`}
       style={invert ? { background: 'var(--color-neutral)', color: 'var(--color-neutral-content)' } : undefined}
     >

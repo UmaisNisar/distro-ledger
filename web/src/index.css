@@ -86,6 +86,28 @@
 html {
   scrollbar-gutter: stable;
   font-family: var(--font-app);
+  /* Themes native form controls incl. the date-picker highlight to the brand. */
+  accent-color: var(--color-primary);
+}
+
+/* Remove the native number spinner arrows — cleaner money inputs. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Date input: tint the calendar picker glyph to the current text color. */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 html,

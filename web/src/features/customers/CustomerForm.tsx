@@ -73,14 +73,14 @@ export function CustomerForm({
       title={customer ? 'Edit customer' : 'New customer'}
       footer={<Button block onClick={onSubmit} loading={isSubmitting}>{customer ? 'Save changes' : 'Add customer'}</Button>}
     >
-      <TextField label="Name" placeholder="Zee Mart" error={errors.name?.message} {...register('name')} />
+      <TextField label="Name" required placeholder="Zee Mart" error={errors.name?.message} {...register('name')} />
       <TextField label={company?.taxIdLabel ?? 'Tax ID'} error={errors.taxId?.message} {...register('taxId')} />
       <div className="grid grid-cols-2 gap-3">
         <TextField label="Phone" error={errors.phone?.message} {...register('phone')} />
         <TextField label="City" error={errors.city?.message} {...register('city')} />
       </div>
       <TextField label="Address" error={errors.address?.message} {...register('address')} />
-      <TextareaField label="Other IDs (optional)" error={errors.otherIds?.message} {...register('otherIds')} />
+      <TextareaField label="Other IDs" error={errors.otherIds?.message} {...register('otherIds')} />
     </Sheet>
   )
 }

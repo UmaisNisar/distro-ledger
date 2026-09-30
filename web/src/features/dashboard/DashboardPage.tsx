@@ -64,10 +64,10 @@ export function DashboardPage() {
           Array.from({ length: 4 }).map((_, i) => <div key={i} className="panel h-[104px] skeleton" />)
         ) : (
           <>
-            <StatTile icon={TrendingUp} label="This month" value={moneyCompact(data.monthSales, symbol)} hint={`${data.monthTransactions} sales`} invert onClick={() => goMonth(new Date().getMonth())} />
-            <StatTile icon={CalendarRange} label="This year" value={moneyCompact(data.yearSales, symbol)} hint={`${trend.reduce((a, m) => a + m.transactions, 0)} sales`} onClick={() => navigate('/sales')} />
-            <StatTile icon={Wallet} label="Outstanding" value={moneyCompact(data.totalOutstanding, symbol)} hint="receivables" onClick={() => navigate('/receivables')} />
-            <StatTile icon={Users} label="Customers" value={String(data.customerCount)} hint="on file" onClick={() => navigate('/customers')} />
+            <StatTile icon={TrendingUp} label="This month" value={moneyCompact(data.monthSales, symbol)} hint={`${data.monthTransactions} sales`} invert onClick={() => goMonth(new Date().getMonth())} tip="Total sales recorded this calendar month" />
+            <StatTile icon={CalendarRange} label="This year" value={moneyCompact(data.yearSales, symbol)} hint={`${trend.reduce((a, m) => a + m.transactions, 0)} sales`} onClick={() => navigate('/sales')} tip={`Total sales recorded in ${year}`} />
+            <StatTile icon={Wallet} label="Outstanding" value={moneyCompact(data.totalOutstanding, symbol)} hint="receivables" onClick={() => navigate('/receivables')} tip="Unpaid balance across all invoices" />
+            <StatTile icon={Users} label="Customers" value={String(data.customerCount)} hint="on file" onClick={() => navigate('/customers')} tip="Customers on file" />
           </>
         )}
       </div>
@@ -115,7 +115,7 @@ export function DashboardPage() {
               {topCustomers.map((c) => (
                 <button key={c.id} className="flex flex-col gap-2 text-left" onClick={() => navigate(`/customers/${c.id}`)}>
                   <div className="flex justify-between gap-3">
-                    <span className="text-[0.95rem] font-medium truncate">{c.name}</span>
+                    <span className="text-[0.95rem] font-medium truncate" title={c.name}>{c.name}</span>
                     <span className="tabular text-[0.95rem] shrink-0">{num(c.totalSales)}</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-base-300 overflow-hidden">

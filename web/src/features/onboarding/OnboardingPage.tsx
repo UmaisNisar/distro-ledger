@@ -82,13 +82,14 @@ export function OnboardingPage() {
           <>
             <TextField
               label="Company name"
+              required
               placeholder="Salah Traders"
               error={errors.name?.message}
               {...register('name', {
                 onChange: (e) => setValue('slug', e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''), { shouldValidate: true }),
               })}
             />
-            <TextField label="Company handle (used to sign in)" placeholder="salah-traders" autoCapitalize="none" error={errors.slug?.message} {...register('slug')} />
+            <TextField label="Company handle (used to sign in)" required placeholder="salah-traders" autoCapitalize="none" error={errors.slug?.message} {...register('slug')} />
             <TextField label="Address (optional)" error={errors.address?.message} {...register('address')} />
             <div className="grid grid-cols-2 gap-3">
               <TextField label="City (optional)" error={errors.city?.message} {...register('city')} />
@@ -131,8 +132,8 @@ export function OnboardingPage() {
         {step === 2 && (
           <>
             <p className="subhead text-secondary mb-1">One shared password signs your whole team into this company.</p>
-            <PasswordField label="Password" autoComplete="new-password" error={errors.password?.message} {...register('password')} />
-            <PasswordField label="Confirm password" autoComplete="new-password" error={errors.confirm?.message} {...register('confirm')} />
+            <PasswordField label="Password" required autoComplete="new-password" error={errors.password?.message} {...register('password')} />
+            <PasswordField label="Confirm password" required autoComplete="new-password" error={errors.confirm?.message} {...register('confirm')} />
           </>
         )}
 

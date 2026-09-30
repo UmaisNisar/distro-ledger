@@ -61,6 +61,7 @@ export function CreateCompanyForm({
     >
       <TextField
         label="Company name"
+        required
         placeholder="Salah Traders"
         error={errors.name?.message}
         {...register('name', {
@@ -70,7 +71,7 @@ export function CreateCompanyForm({
           },
         })}
       />
-      <TextField label="Handle (used to sign in)" placeholder="salah-traders" autoCapitalize="none" error={errors.slug?.message} {...register('slug')} />
+      <TextField label="Handle (used to sign in)" required placeholder="salah-traders" autoCapitalize="none" error={errors.slug?.message} {...register('slug')} />
       <TextField
         label="Password (leave blank to auto-generate)"
         placeholder="Auto-generate"

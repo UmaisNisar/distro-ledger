@@ -66,7 +66,7 @@ export function SalesPage() {
       }),
       col.accessor('customerName', {
         header: 'Customer',
-        cell: (c) => <span className="whitespace-nowrap">{c.getValue()}</span>,
+        cell: (c) => <span className="whitespace-nowrap" title={c.getValue()}>{c.getValue()}</span>,
       }),
       col.accessor('amount', {
         header: 'Amount',
@@ -202,7 +202,8 @@ export function SalesPage() {
         />
       </div>
 
-      {/* Grid */}
+      {/* Grid — reserved min-height so empty/loaded states don't shift the layout */}
+      <div className="min-h-[520px]">
       {noCustomers ? (
         <div className="panel">
           <EmptyState icon={Receipt} title="Add a customer first" subtitle="You need a customer before recording a sale." />
@@ -290,6 +291,7 @@ export function SalesPage() {
           )}
         </div>
       )}
+      </div>
 
       {formOpen && (
         <SaleForm

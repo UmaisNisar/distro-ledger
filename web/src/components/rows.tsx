@@ -36,7 +36,7 @@ export function SaleRowCard({
         <span className="text-[0.62rem] uppercase text-secondary tracking-wide">{mon}</span>
       </span>
       <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <span className="text-[0.95rem] font-medium truncate">{sale.customerName}</span>
+        <span className="text-[0.95rem] font-medium truncate" title={sale.customerName}>{sale.customerName}</span>
         <span className="footnote text-secondary truncate tabular">{sale.invoiceNumber}</span>
       </span>
       <span className="flex flex-col items-end gap-1 shrink-0">

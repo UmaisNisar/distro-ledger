@@ -11,26 +11,49 @@ import {
 } from 'react'
 import { Check, ChevronDown, Eye, EyeOff, Search } from 'lucide-react'
 
-function Wrap({ id, label, error, children }: { id: string; label: string; error?: string; children: ReactNode }) {
+function Wrap({
+  id,
+  label,
+  error,
+  required,
+  hint,
+  children,
+}: {
+  id: string
+  label: string
+  error?: string
+  required?: boolean
+  hint?: string
+  children: ReactNode
+}) {
   return (
     <div className="w-full">
-      <label htmlFor={id} className="block text-[0.92rem] font-semibold mb-1.5">{label}</label>
+      <label htmlFor={id} className="block text-[0.92rem] font-semibold mb-1.5">
+        {label}
+        {required && <span className="text-error ml-0.5" aria-hidden="true">*</span>}
+      </label>
       {children}
-      {/* reserved space: errors never shift layout */}
-      <div className="min-h-[18px] pt-1 text-xs text-error leading-tight">{error ?? ''}</div>
+      {/* one reserved line: shows the error, else the hint — never shifts layout */}
+      <div className="min-h-[18px] pt-1 text-xs leading-tight">
+        {error ? (
+          <span className="text-error">{error}</span>
+        ) : hint ? (
+          <span className="text-tertiary">{hint}</span>
+        ) : null}
+      </div>
     </div>
   )
 }
 
 export const TextField = forwardRef<
   HTMLInputElement,
-  InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }
->(function TextField({ label, error, className = '', id, ...rest }, ref) {
+  InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string; required?: boolean }
+>(function TextField({ label, error, hint, required, className = '', id, ...rest }, ref) {
   const autoId = useId()
   const fieldId = id ?? autoId
   return (
-    <Wrap id={fieldId} label={label} error={error}>
-      <input id={fieldId} ref={ref} className={`input w-full ${error ? 'input-error' : ''} ${className}`} {...rest} />
+    <Wrap id={fieldId} label={label} error={error} required={required} hint={hint}>
+      <input id={fieldId} ref={ref} required={required} className={`input w-full ${error ? 'input-error' : ''} ${className}`} {...rest} />
     </Wrap>
   )
 })
@@ -38,13 +61,13 @@ export const TextField = forwardRef<
 /** Password input with a show/hide eye toggle. */
 export const PasswordField = forwardRef<
   HTMLInputElement,
-  InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }
->(function PasswordField({ label, error, className = '', id, ...rest }, ref) {
+  InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string; required?: boolean }
+>(function PasswordField({ label, error, hint, required, className = '', id, ...rest }, ref) {
   const autoId = useId()
   const fieldId = id ?? autoId
   const [show, setShow] = useState(false)
   return (
-    <Wrap id={fieldId} label={label} error={error}>
+    <Wrap id={fieldId} label={label} error={error} required={required} hint={hint}>
       <div className={`input w-full flex items-center gap-2 pr-1 ${error ? 'input-error' : ''}`}>
         <input
           id={fieldId}
@@ -70,12 +93,12 @@ export const PasswordField = forwardRef<
 /** Currency amount input — shows the symbol inline, whole numbers only. */
 export const MoneyField = forwardRef<
   HTMLInputElement,
-  InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; symbol?: string }
->(function MoneyField({ label, error, className = '', id, symbol = 'Rs', ...rest }, ref) {
+  InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; symbol?: string; hint?: string; required?: boolean }
+>(function MoneyField({ label, error, hint, required, className = '', id, symbol = 'Rs', ...rest }, ref) {
   const autoId = useId()
   const fieldId = id ?? autoId
   return (
-    <Wrap id={fieldId} label={label} error={error}>
+    <Wrap id={fieldId} label={label} error={error} required={required} hint={hint}>
       <div className={`input w-full flex items-center gap-2 ${error ? 'input-error' : ''}`}>
         <span className="shrink-0 text-secondary font-semibold select-none">{symbol}</span>
         <input
@@ -103,6 +126,8 @@ export function Combobox({
   options,
   placeholder = 'Search…',
   error,
+  hint,
+  required,
   emptyText = 'No matches',
 }: {
   label: string
@@ -111,6 +136,8 @@ export function Combobox({
   options: ComboOption[]
   placeholder?: string
   error?: string
+  hint?: string
+  required?: boolean
   emptyText?: string
 }) {
   const id = useId()
@@ -134,7 +161,7 @@ export function Combobox({
   }, [open])
 
   return (
-    <Wrap id={id} label={label} error={error}>
+    <Wrap id={id} label={label} error={error} required={required} hint={hint}>
       <div ref={wrapRef} className="relative">
         <button
           type="button"
@@ -190,26 +217,26 @@ export function Combobox({
 
 export const TextareaField = forwardRef<
   HTMLTextAreaElement,
-  TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string }
->(function TextareaField({ label, error, className = '', id, ...rest }, ref) {
+  TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string; hint?: string; required?: boolean }
+>(function TextareaField({ label, error, hint, required, className = '', id, ...rest }, ref) {
   const autoId = useId()
   const fieldId = id ?? autoId
   return (
-    <Wrap id={fieldId} label={label} error={error}>
-      <textarea id={fieldId} ref={ref} className={`textarea w-full min-h-24 ${error ? 'textarea-error' : ''} ${className}`} {...rest} />
+    <Wrap id={fieldId} label={label} error={error} required={required} hint={hint}>
+      <textarea id={fieldId} ref={ref} required={required} className={`textarea w-full min-h-24 ${error ? 'textarea-error' : ''} ${className}`} {...rest} />
     </Wrap>
   )
 })
 
 export const SelectField = forwardRef<
   HTMLSelectElement,
-  SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; children: ReactNode }
->(function SelectField({ label, error, className = '', children, id, ...rest }, ref) {
+  SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; hint?: string; required?: boolean; children: ReactNode }
+>(function SelectField({ label, error, hint, required, className = '', children, id, ...rest }, ref) {
   const autoId = useId()
   const fieldId = id ?? autoId
   return (
-    <Wrap id={fieldId} label={label} error={error}>
-      <select id={fieldId} ref={ref} className={`select w-full ${error ? 'select-error' : ''} ${className}`} {...rest}>
+    <Wrap id={fieldId} label={label} error={error} required={required} hint={hint}>
+      <select id={fieldId} ref={ref} required={required} className={`select w-full ${error ? 'select-error' : ''} ${className}`} {...rest}>
         {children}
       </select>
     </Wrap>

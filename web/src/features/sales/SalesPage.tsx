@@ -172,7 +172,7 @@ export function SalesPage() {
             onClick={() => setMonth(t.v)}
             className={`flex-1 min-w-[52px] px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
               month === t.v
-                ? 'bg-neutral text-neutral-content'
+                ? 'bg-primary text-primary-content'
                 : 'text-base-content/70 hover:bg-base-100'
             }`}
           >

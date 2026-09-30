@@ -250,7 +250,12 @@ export function DateField({
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Element
+      if (wrapRef.current?.contains(t)) return
+      // The month/year dropdowns render their menus in a portal outside this
+      // popover — clicks there must not close the calendar.
+      if (t.closest?.('[data-themed-menu]')) return
+      setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
@@ -364,16 +369,22 @@ export function ThemedSelect({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
-    const onScroll = () => setOpen(false)
+    // Close when the background scrolls (the fixed menu would detach from its
+    // trigger) — but NOT when scrolling inside the menu's own list.
+    const onScroll = (e: Event) => {
+      if (menuRef.current?.contains(e.target as Node)) return
+      setOpen(false)
+    }
+    const onResize = () => setOpen(false)
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
     window.addEventListener('scroll', onScroll, true)
-    window.addEventListener('resize', onScroll)
+    window.addEventListener('resize', onResize)
     return () => {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('keydown', onKey)
       window.removeEventListener('scroll', onScroll, true)
-      window.removeEventListener('resize', onScroll)
+      window.removeEventListener('resize', onResize)
     }
   }, [open])
 
@@ -419,6 +430,7 @@ export function ThemedSelect({
           <div
             ref={menuRef}
             role="listbox"
+            data-themed-menu=""
             className="fixed z-[120] rounded-xl border border-base-300 bg-base-100 shadow-lg py-1 overflow-y-auto fade-in"
             style={{
               left,

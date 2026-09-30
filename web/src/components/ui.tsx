@@ -111,11 +111,11 @@ export function StatTile({
       onClick={onClick}
       title={tip}
       className={`panel ${onClick ? 'panel-hover cursor-pointer' : ''} ${sm ? 'p-4' : 'p-5'} flex flex-col gap-1.5 min-w-0 w-full text-left ${invert ? 'border-transparent' : ''}`}
-      style={invert ? { background: 'var(--color-neutral)', color: 'var(--color-neutral-content)' } : undefined}
+      style={invert ? { background: 'var(--color-primary)', color: 'var(--color-primary-content)' } : undefined}
     >
       <span
         className="text-[0.7rem] font-bold uppercase tracking-[0.08em] truncate"
-        style={{ color: invert ? 'color-mix(in oklab, var(--color-neutral-content) 70%, transparent)' : 'color-mix(in oklab, var(--color-base-content) 58%, transparent)' }}
+        style={{ color: invert ? 'color-mix(in oklab, var(--color-primary-content) 72%, transparent)' : 'color-mix(in oklab, var(--color-base-content) 58%, transparent)' }}
       >
         {label}
       </span>
@@ -127,7 +127,7 @@ export function StatTile({
         {value}
       </span>
       {hint && (
-        <span className="footnote truncate" style={{ color: invert ? 'color-mix(in oklab, var(--color-neutral-content) 55%, transparent)' : 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' }}>
+        <span className="footnote truncate" style={{ color: invert ? 'color-mix(in oklab, var(--color-primary-content) 60%, transparent)' : 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' }}>
           {hint}
         </span>
       )}

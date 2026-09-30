@@ -156,8 +156,16 @@ export function SalesPage() {
         </Button>
       }
     >
-      {/* Month tabs */}
-      <div className="flex gap-1 p-1 bg-base-200 rounded-xl overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Month — dropdown on mobile, tab strip on larger screens */}
+      <div className="sm:hidden">
+        <ThemedSelect
+          value={String(month)}
+          onChange={(v) => setMonth(Number(v))}
+          options={[{ value: '0', label: 'All months' }, ...MONTHS.map((m, i) => ({ value: String(i + 1), label: m }))]}
+          ariaLabel="Month"
+        />
+      </div>
+      <div className="hidden sm:flex gap-1 p-1 bg-base-200 rounded-xl overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {[{ v: 0, l: 'All' }, ...MONTHS.map((m, i) => ({ v: i + 1, l: m.slice(0, 3) }))].map((t) => (
           <button
             key={t.v}

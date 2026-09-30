@@ -125,6 +125,15 @@ body {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+/* Tailwind v4 no longer defaults buttons to a pointer cursor — restore it so every
+ * clickable control (dropdown options, tiles, icon buttons) reads as clickable. */
+button:not(:disabled),
+[role='button']:not(:disabled),
+[role='option'],
+label[for],
+summary {
+  cursor: pointer;
+}
 
 /* ---------- Typography helpers ---------- */
 .large-title {

@@ -41,6 +41,8 @@ export function CustomersPage() {
   const [selectedId, setSelectedId] = useState<string | undefined>(routeId)
   const [formOpen, setFormOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [salesPage, setSalesPage] = useState(1)
+  const SALES_PER_PAGE = 10
 
   const list = useCustomers(q || undefined)
   const rows = useMemo(() => {
@@ -60,6 +62,11 @@ export function CustomersPage() {
   const detail = useCustomer(selectedId)
   const summary = useCustomerSummary(selectedId, year)
   const detailSales = useSales({ customerId: selectedId, year, pageSize: 1000 })
+
+  // Reset the sales list to page 1 whenever the selected customer changes.
+  useEffect(() => {
+    setSalesPage(1)
+  }, [selectedId])
 
   const select = (cid: string) => {
     setSelectedId(cid)
@@ -91,6 +98,10 @@ export function CustomersPage() {
     transactions: m.transactions,
   }))
   const lastSale = detailSales.data?.items[0]?.date
+
+  const allDetailSales = detailSales.data?.items ?? []
+  const salesPageCount = Math.max(1, Math.ceil(allDetailSales.length / SALES_PER_PAGE))
+  const pagedSales = allDetailSales.slice((salesPage - 1) * SALES_PER_PAGE, salesPage * SALES_PER_PAGE)
 
   return (
     <Page
@@ -130,8 +141,8 @@ export function CustomersPage() {
                       active ? 'bg-base-200 ring-1 ring-primary' : 'hover:bg-base-200'
                     }`}
                   >
-                    <span className="grid place-items-center w-9 h-9 shrink-0 rounded-full text-[0.78rem] font-semibold"
-                      style={{ background: 'color-mix(in oklab, var(--color-primary) 15%, transparent)', color: 'var(--color-primary)' }}>
+                    <span className="grid place-items-center rounded-full text-[0.78rem] font-semibold"
+                      style={{ width: 36, height: 36, flexShrink: 0, background: 'color-mix(in oklab, var(--color-primary) 15%, transparent)', color: 'var(--color-primary)' }}>
                       {initials(c.name)}
                     </span>
                     <span className="flex-1 min-w-0">
@@ -195,7 +206,7 @@ export function CustomersPage() {
                 <>
                   {/* Mobile: card rows */}
                   <div className="md:hidden">
-                    {detailSales.data.items.map((s) => (
+                    {pagedSales.map((s) => (
                       <SaleRowCard key={s.id} sale={s} symbol={symbol} onClick={() => navigate('/sales', { state: { editSaleId: s.id } })} />
                     ))}
                   </div>
@@ -211,7 +222,7 @@ export function CustomersPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {detailSales.data.items.map((s) => (
+                        {pagedSales.map((s) => (
                           <tr key={s.id} className="hover:bg-base-200 cursor-pointer transition-colors" onClick={() => navigate('/sales', { state: { editSaleId: s.id } })}>
                             <td className="text-secondary whitespace-nowrap">{shortDate(s.date)}</td>
                             <td className="tabular text-secondary whitespace-nowrap">{s.invoiceNumber}</td>
@@ -222,6 +233,22 @@ export function CustomersPage() {
                       </tbody>
                     </table>
                   </div>
+                  {/* Pagination */}
+                  {salesPageCount > 1 && (
+                    <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-base-300">
+                      <span className="footnote text-secondary">
+                        Page {salesPage} of {salesPageCount} · {allDetailSales.length} sales
+                      </span>
+                      <div className="join">
+                        <button className="btn btn-sm join-item" disabled={salesPage <= 1} onClick={() => setSalesPage((p) => Math.max(1, p - 1))}>
+                          Prev
+                        </button>
+                        <button className="btn btn-sm join-item" disabled={salesPage >= salesPageCount} onClick={() => setSalesPage((p) => Math.min(salesPageCount, p + 1))}>
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <EmptyState icon={CalendarDays} title="No sales this year" subtitle={`Nothing recorded for ${year}.`} />

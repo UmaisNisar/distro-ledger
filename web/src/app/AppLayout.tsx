@@ -60,7 +60,7 @@ export function AppLayout() {
           aria-label="Settings"
           data-tip="Settings"
           className={({ isActive }) =>
-            `tooltip tooltip-top grid place-items-center w-10 h-10 rounded-lg transition-colors ${
+            `tooltip tooltip-top flex-1 grid place-items-center h-10 rounded-lg transition-colors ${
               isActive ? 'bg-white/[0.09] text-white' : 'text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white'
             }`
           }
@@ -71,7 +71,7 @@ export function AppLayout() {
           onClick={toggle}
           aria-label={isDark ? 'Light mode' : 'Dark mode'}
           data-tip={isDark ? 'Light mode' : 'Dark mode'}
-          className="tooltip tooltip-top grid place-items-center w-10 h-10 rounded-lg text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white transition-colors"
+          className="tooltip tooltip-top flex-1 grid place-items-center h-10 rounded-lg text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white transition-colors"
         >
           {isDark ? <Sun size={19} /> : <Moon size={19} />}
         </button>
@@ -79,7 +79,7 @@ export function AppLayout() {
           onClick={logout}
           aria-label="Sign out"
           data-tip="Sign out"
-          className="tooltip tooltip-top grid place-items-center w-10 h-10 rounded-lg text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white transition-colors"
+          className="tooltip tooltip-top flex-1 grid place-items-center h-10 rounded-lg text-[#B9C3BD] hover:bg-white/[0.06] hover:text-white transition-colors"
         >
           <LogOut size={19} />
         </button>

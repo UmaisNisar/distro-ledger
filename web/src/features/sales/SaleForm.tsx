@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
@@ -55,6 +56,7 @@ export function SaleForm({
     register,
     control,
     watch,
+    setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormInput, unknown, FormOutput>({
@@ -117,6 +119,10 @@ export function SaleForm({
     }
   }
 
+  // Received defaults to the total (most sales are paid in full) until the user
+  // edits it themselves. Not auto-mirrored when editing an existing sale.
+  const paidEdited = useRef(!!sale)
+
   // Live payment status derived from the two amounts (clarifies their relationship).
   const amountV = Number(watch('amount')) || 0
   const paidV = Number(watch('amountPaid')) || 0
@@ -174,7 +180,11 @@ export function SaleForm({
           placeholder="0"
           hint="Full invoice value"
           error={errors.amount?.message}
-          {...register('amount')}
+          {...register('amount', {
+            onChange: (e) => {
+              if (!paidEdited.current) setValue('amountPaid', e.target.value, { shouldValidate: true })
+            },
+          })}
         />
         <MoneyField
           label="Received"
@@ -182,7 +192,11 @@ export function SaleForm({
           placeholder="0"
           hint="Paid so far · 0 if unpaid"
           error={errors.amountPaid?.message}
-          {...register('amountPaid')}
+          {...register('amountPaid', {
+            onChange: () => {
+              paidEdited.current = true
+            },
+          })}
         />
       </div>
       {derivedStatus && (

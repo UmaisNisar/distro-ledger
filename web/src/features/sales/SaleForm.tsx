@@ -222,14 +222,19 @@ export function SaleForm({
           </span>
         </div>
       )}
-      <SelectField label="Payment method" error={errors.paymentMethod?.message} {...register('paymentMethod')}>
-        <option value="">Not set</option>
-        {METHODS.map((m) => (
-          <option key={m} value={m}>
-            {m}
-          </option>
-        ))}
-      </SelectField>
+      <Controller
+        name="paymentMethod"
+        control={control}
+        render={({ field }) => (
+          <SelectField
+            label="Payment method"
+            value={field.value ?? ''}
+            onChange={field.onChange}
+            options={[{ value: '', label: 'Not set' }, ...METHODS.map((m) => ({ value: m, label: m }))]}
+            error={errors.paymentMethod?.message}
+          />
+        )}
+      />
       <TextareaField label="Notes (optional)" error={errors.notes?.message} {...register('notes')} />
     </Sheet>
   )

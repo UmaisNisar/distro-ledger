@@ -116,11 +116,15 @@ export function OnboardingPage() {
             </div>
             <SelectField
               label="Currency"
+              value={watch('currencyCode')}
+              onChange={(v) => {
+                setValue('currencyCode', v, { shouldValidate: true })
+                const s = CURRENCY[v]
+                if (s) setValue('currencySymbol', s, { shouldValidate: true })
+              }}
+              options={Object.keys(CURRENCY).map((c) => ({ value: c, label: c }))}
               error={errors.currencyCode?.message}
-              {...register('currencyCode', { onChange: (e) => { const s = CURRENCY[e.target.value]; if (s) setValue('currencySymbol', s, { shouldValidate: true }) } })}
-            >
-              {Object.keys(CURRENCY).map((c) => <option key={c} value={c}>{c}</option>)}
-            </SelectField>
+            />
             <div className="grid grid-cols-2 gap-3">
               <TextField label="Currency symbol" error={errors.currencySymbol?.message} {...register('currencySymbol')} />
               <TextField label="Invoice prefix" error={errors.invoicePrefix?.message} {...register('invoicePrefix')} />

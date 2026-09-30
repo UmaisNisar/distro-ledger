@@ -6,7 +6,7 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'soft'
 
 const VARIANT: Record<Variant, string> = {
   primary: 'btn-primary',
-  secondary: 'btn-neutral btn-outline',
+  secondary: 'btn-secondary-line',
   ghost: 'btn-ghost',
   danger: 'btn-error btn-outline',
   soft: 'btn-primary btn-soft',

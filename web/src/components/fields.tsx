@@ -2,16 +2,18 @@ import {
   forwardRef,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type InputHTMLAttributes,
   type ReactNode,
-  type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { Calendar, Check, ChevronDown, Eye, EyeOff, Search } from 'lucide-react'
 import { format as formatDate, parseISO } from 'date-fns'
-import { DayPicker } from 'react-day-picker'
+import { DayPicker, type DropdownProps } from 'react-day-picker'
 
 function Wrap({
   id,
@@ -293,6 +295,7 @@ export function DateField({
               startMonth={new Date(thisYear - 5, 0)}
               endMonth={new Date(thisYear + 1, 11)}
               showOutsideDays
+              components={{ Dropdown: CalendarDropdown }}
             />
           </div>
         )}
@@ -314,20 +317,205 @@ export const TextareaField = forwardRef<
   )
 })
 
-export const SelectField = forwardRef<
-  HTMLSelectElement,
-  SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; hint?: string; required?: boolean; children: ReactNode }
->(function SelectField({ label, error, hint, required, className = '', children, id, ...rest }, ref) {
-  const autoId = useId()
-  const fieldId = id ?? autoId
+export type SelectOption = { value: string; label: string; hint?: string; disabled?: boolean }
+
+/** Themed dropdown primitive. Renders its own listbox in a portal so the menu is
+ * never clipped by scroll containers or `overflow` (native <select> popups can't
+ * be styled to match the app; this can). Fully controlled. */
+export function ThemedSelect({
+  value,
+  onChange,
+  options,
+  placeholder = 'Select…',
+  disabled,
+  error,
+  id,
+  ariaLabel,
+  variant = 'input',
+}: {
+  value: string
+  onChange: (v: string) => void
+  options: SelectOption[]
+  placeholder?: string
+  disabled?: boolean
+  error?: boolean
+  id?: string
+  ariaLabel?: string
+  variant?: 'input' | 'inline'
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
+  const [rect, setRect] = useState<DOMRect | null>(null)
+
+  const selected = options.find((o) => o.value === value)
+
+  useLayoutEffect(() => {
+    if (open && btnRef.current) setRect(btnRef.current.getBoundingClientRect())
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (btnRef.current?.contains(t) || menuRef.current?.contains(t)) return
+      setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    const onScroll = () => setOpen(false)
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', onScroll)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [open])
+
+  // Scroll the current selection into view when the menu opens.
+  useEffect(() => {
+    if (!open || !menuRef.current) return
+    menuRef.current.querySelector('[data-selected="true"]')?.scrollIntoView({ block: 'nearest' })
+  }, [open])
+
+  const menuHeight = Math.min(options.length * 40 + 8, 264)
+  const openUp = rect ? rect.bottom + menuHeight > window.innerHeight && rect.top > menuHeight : false
+  const minWidth = variant === 'inline' ? 168 : rect?.width
+  const left = rect ? Math.max(8, Math.min(rect.left, window.innerWidth - (minWidth ?? rect.width) - 8)) : 0
+
+  const trigger =
+    variant === 'inline'
+      ? `inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.9rem] font-semibold hover:bg-base-200 transition-colors ${
+          disabled ? 'opacity-50 pointer-events-none' : ''
+        }`
+      : `input w-full flex items-center justify-between gap-2 text-left ${error ? 'input-error' : ''} ${
+          disabled ? 'opacity-60 pointer-events-none' : ''
+        }`
+
   return (
-    <Wrap id={fieldId} label={label} error={error} required={required} hint={hint}>
-      <select id={fieldId} ref={ref} required={required} className={`select w-full ${error ? 'select-error' : ''} ${className}`} {...rest}>
-        {children}
-      </select>
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        id={id}
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        className={trigger}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className={selected ? '' : 'text-tertiary'}>{selected ? selected.label : placeholder}</span>
+        <ChevronDown size={variant === 'inline' ? 16 : 18} className="opacity-50 shrink-0" />
+      </button>
+      {open &&
+        rect &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="listbox"
+            className="fixed z-[120] rounded-xl border border-base-300 bg-base-100 shadow-lg py-1 overflow-y-auto fade-in"
+            style={{
+              left,
+              width: variant === 'inline' ? undefined : rect.width,
+              minWidth,
+              maxHeight: 264,
+              ...(openUp ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
+            }}
+          >
+            {options.map((o) => {
+              const isSel = o.value === value
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  role="option"
+                  aria-selected={isSel}
+                  data-selected={isSel}
+                  disabled={o.disabled}
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left text-[0.95rem] transition-colors ${
+                    o.disabled ? 'opacity-40 pointer-events-none' : 'hover:bg-base-200'
+                  } ${isSel ? 'bg-base-200/60 font-semibold' : ''}`}
+                  onClick={() => {
+                    onChange(o.value)
+                    setOpen(false)
+                  }}
+                >
+                  <span className="min-w-0 truncate">{o.label}</span>
+                  <span className="flex items-center gap-2 shrink-0">
+                    {o.hint && <span className="footnote text-tertiary tabular">{o.hint}</span>}
+                    {isSel && <Check size={16} className="text-primary" />}
+                  </span>
+                </button>
+              )
+            })}
+          </div>,
+          document.body,
+        )}
+    </>
+  )
+}
+
+/** Labeled themed dropdown (controlled). Uses {@link ThemedSelect} so the open
+ * menu matches the app in both themes, unlike a native <select>. */
+export function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  error,
+  hint,
+  required,
+  disabled,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: SelectOption[]
+  placeholder?: string
+  error?: string
+  hint?: string
+  required?: boolean
+  disabled?: boolean
+}) {
+  const id = useId()
+  return (
+    <Wrap id={id} label={label} error={error} required={required} hint={hint}>
+      <ThemedSelect
+        id={id}
+        value={value}
+        onChange={onChange}
+        options={options}
+        placeholder={placeholder}
+        error={!!error}
+        disabled={disabled}
+        ariaLabel={label}
+      />
     </Wrap>
   )
-})
+}
+
+/** react-day-picker Dropdown override — swaps its native <select> month/year
+ * pickers for the themed {@link ThemedSelect} so their menus match the app. */
+function CalendarDropdown(props: DropdownProps) {
+  const { options = [], value, onChange, disabled } = props
+  return (
+    <ThemedSelect
+      variant="inline"
+      value={value != null ? String(value) : ''}
+      options={options.map((o) => ({ value: String(o.value), label: o.label, disabled: o.disabled }))}
+      onChange={(v) => onChange?.({ target: { value: v } } as unknown as ChangeEvent<HTMLSelectElement>)}
+      ariaLabel={props['aria-label']}
+      disabled={disabled}
+    />
+  )
+}
 
 export function Segmented<T extends string>({
   value,

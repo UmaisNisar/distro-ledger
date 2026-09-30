@@ -185,6 +185,20 @@ body {
   border-color: color-mix(in oklab, var(--color-base-content) 22%, transparent);
 }
 
+/* ---------- Secondary button ----------
+ * DaisyUI's `btn-neutral btn-outline` renders near-invisible in dark mode because
+ * the neutral token is almost black. Derive the outline from base-content instead
+ * so it stays legible in both themes. */
+.btn.btn-secondary-line {
+  background-color: transparent;
+  border: 1px solid color-mix(in oklab, var(--color-base-content) 24%, transparent);
+  color: var(--color-base-content);
+}
+.btn.btn-secondary-line:hover {
+  background-color: var(--color-base-200);
+  border-color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+}
+
 /* ---------- Motion ---------- */
 @keyframes page-in {
   from {

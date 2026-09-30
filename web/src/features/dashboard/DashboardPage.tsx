@@ -8,6 +8,7 @@ import { Button, EmptyState, LinkAction, PaymentBadge, SkeletonRows, StatTile } 
 import { SaleRowCard } from '../../components/rows'
 import { money, moneyCompact, num, shortDate } from '../../lib/format'
 import { useCustomers, useOverview, useSales } from '../../lib/queries'
+import { SaleForm } from '../sales/SaleForm'
 
 export function DashboardPage() {
   const { company } = useAuth()
@@ -17,6 +18,8 @@ export function DashboardPage() {
   const { data, isLoading } = useOverview()
   const recent = useSales({ pageSize: 8, page: 1 })
   const customers = useCustomers()
+  const [formOpen, setFormOpen] = useState(false)
+  const noCustomers = customers.data && customers.data.length === 0
 
   const trend = data?.trend ?? []
   // Default the selected bar to the latest month that has sales.
@@ -52,7 +55,7 @@ export function DashboardPage() {
       action={
         <div className="flex items-center gap-3">
           <span className="hidden sm:block footnote text-secondary">As of {shortDate(new Date().toISOString())}</span>
-          <Button onClick={() => navigate('/sales', { state: { openNew: true } })}>
+          <Button onClick={() => setFormOpen(true)} disabled={noCustomers}>
             <Plus size={18} /> New sale
           </Button>
         </div>
@@ -176,6 +179,10 @@ export function DashboardPage() {
           <EmptyState icon={TrendingUp} title="No sales yet" subtitle="Add your first sale to see it here." />
         )}
       </div>
+
+      {formOpen && (
+        <SaleForm open={formOpen} onClose={() => setFormOpen(false)} customers={customers.data ?? []} />
+      )}
     </Page>
   )
 }

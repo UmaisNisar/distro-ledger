@@ -13,7 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { Page } from '../../components/Page'
-import { Segmented } from '../../components/fields'
+import { Segmented, ThemedSelect } from '../../components/fields'
 import { Button, EmptyState, PaymentBadge, SkeletonRows } from '../../components/ui'
 import { SaleRowCard } from '../../components/rows'
 import { money, MONTHS, shortDate } from '../../lib/format'
@@ -184,11 +184,14 @@ export function SalesPage() {
             onChange={(e) => setGlobalFilter(e.target.value)}
           />
         </label>
-        <select className="select w-28" value={year} onChange={(e) => setYear(Number(e.target.value))}>
-          {years.map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
+        <div className="w-28">
+          <ThemedSelect
+            value={String(year)}
+            onChange={(v) => setYear(Number(v))}
+            options={years.map((y) => ({ value: String(y), label: String(y) }))}
+            ariaLabel="Year"
+          />
+        </div>
         <Segmented
           value={status}
           onChange={setStatus}

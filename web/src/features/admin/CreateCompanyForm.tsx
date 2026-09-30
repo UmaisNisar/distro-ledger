@@ -35,6 +35,7 @@ export function CreateCompanyForm({
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     resolver: zodResolver(schema),
@@ -80,16 +81,15 @@ export function CreateCompanyForm({
       />
       <SelectField
         label="Currency"
+        value={watch('currencyCode')}
+        onChange={(v) => {
+          setValue('currencyCode', v, { shouldValidate: true })
+          const sym = CURRENCY[v]
+          if (sym) setValue('currencySymbol', sym, { shouldValidate: true })
+        }}
+        options={Object.keys(CURRENCY).map((c) => ({ value: c, label: c }))}
         error={errors.currencyCode?.message}
-        {...register('currencyCode', {
-          onChange: (e) => {
-            const sym = CURRENCY[e.target.value]
-            if (sym) setValue('currencySymbol', sym, { shouldValidate: true })
-          },
-        })}
-      >
-        {Object.keys(CURRENCY).map((c) => <option key={c} value={c}>{c}</option>)}
-      </SelectField>
+      />
       <div className="grid grid-cols-2 gap-2">
         <TextField label="Currency symbol" error={errors.currencySymbol?.message} {...register('currencySymbol')} />
         <TextField label="Invoice prefix" error={errors.invoicePrefix?.message} {...register('invoicePrefix')} />

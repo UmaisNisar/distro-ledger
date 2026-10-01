@@ -23,7 +23,7 @@ export function ReceivablesPage() {
       ) : (
         <>
           <div className="grid sm:grid-cols-3 gap-4 stagger">
-            <StatTile icon={Wallet} label="Total outstanding" value={moneyCompact(data.totalOutstanding, symbol)} accent />
+            <StatTile icon={Wallet} label="Total outstanding" value={moneyCompact(data.totalOutstanding, symbol)} invert />
             <StatTile label="Customers owing" value={String(data.customers.length)} />
             <StatTile
               label="Over 90 days"

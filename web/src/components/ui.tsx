@@ -96,8 +96,7 @@ export function StatTile({
   tip?: string
   /** Kept for API compatibility; decorative icons are no longer rendered. */
   icon?: LucideIcon
-  accent?: boolean
-  /** Dark, high-emphasis tile — use for the primary KPI. */
+  /** Green, high-emphasis tile — use for the single most important KPI on a page. */
   invert?: boolean
   /** When set, the whole tile is a button. */
   onClick?: () => void
